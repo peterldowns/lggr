@@ -13,18 +13,17 @@ import lggr
 logger = lggr.Lggr() # create a logging object
 
 logger.addMethod(lggr.INFO, lggr.Printer()) # log all info() calls to STDOUT
-
-# log all critical() calls to an output file
-logger.addMethod(lggr.CRITICAL, lggr.FilePrinter("output.log")) 
-
+logger.addMethod(lggr.CRITICAL, lggr.FilePrinter("output.log")) # log all critical() calls to an output file
 logger.addMethod(None, lggr.ErrorPrinter()) # log all logging calls to STDERR
 
 logger.info("Here is a low level warning. It will be written to STDOUT and STDERR")
 logger.warning("This is a warning. It is written to STDERR.")
 logger.critical("This message will show up on STDERR and also in the \"output.log\" file")
 
-# did I mention that it does formatting? yeah.
-logger.info("{noun} is so {adjective}, I'd {verb} its {pl_noun}", noun="lggr", adjective="cool", verb="test", pl_noun="functions")
+# did I mention that it does arbitrary string.format()ing? yeah.
+logger.info("{noun} is so {adjective}, I'd {verb} its {pl_noun}",
+			noun="lggr", adjective="cool", verb="test", pl_noun="functions")
+
 logger.warning("WARNING: {} is a {}. You should know this", lggr.Lggr, type(lggr.Lggr))
 
 logger.clearMethods(lggr.CRITICAL) # remove all methods from a specific level
