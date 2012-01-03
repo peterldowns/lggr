@@ -54,5 +54,6 @@ Right now, this library is lacking stack-traces and file info (darn!) but I'm wo
 Peter Downs.
 
 peter.l.downs@gmail.com
-@peterldowns
+
+[@peterldowns](http://twitter.com/peterldowns)
 
