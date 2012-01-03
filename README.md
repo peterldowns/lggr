@@ -4,6 +4,8 @@ Have you ever tried to do anything with the python logging module?
 
 I have. I didn't like it at all. The API was very confusing. Instead of dealing with all of its intricacies, I decided to roll my own.
 
+I've been inspired by [dabeaz](http://www.dabeaz.com/)'s presentation on coroutines and Kenneth Reitz's [presentation](http://python-for-humans.heroku.com/) on better python libraries.
+
 # How does it work?
 
 Here's an example of adding lggr to an application.
