@@ -11,6 +11,8 @@ Here's an example of adding lggr to an application.
 ```python
 import lggr
 logger = lggr.Lggr() # create a logging object
+logger.disable() # silently stop logging - for when you don't need it, but might in the future
+logger.enable() # turn the logging back on
 
 logger.addMethod(lggr.INFO, lggr.Printer()) # log all info() calls to STDOUT
 logger.addMethod(lggr.CRITICAL, lggr.FilePrinter("output.log")) # log all critical() calls to an output file
