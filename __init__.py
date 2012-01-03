@@ -99,7 +99,11 @@ class Lggr():
 
 		levset = self.loggers[level]
 		for logger in levset:
-			logger.send(message)
+			try:
+				logger.send(message)
+			except StopIteration: # already closed
+				self.removeMethod(levset, logger)
+				self.info("Logging function {} in level {} stopped.", logger, levset)
 
 	def critical(self, msg, *args, **kwargs):
 		""" Log a message with CRITICAL level """
