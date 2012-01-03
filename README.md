@@ -11,8 +11,12 @@ Here's an example of adding lggr to an application.
 ```python
 import lggr
 logger = lggr.Lggr() # create a logging object
+
 logger.addMethod(lggr.INFO, lggr.Printer()) # log all info() calls to STDOUT
-logger.addMethod(lggr.CRITICAL, lggr.FilePrinter("output.log")) # log all critical() calls to an output file
+
+# log all critical() calls to an output file
+logger.addMethod(lggr.CRITICAL, lggr.FilePrinter("output.log")) 
+
 logger.addMethod(None, lggr.ErrorPrinter()) # log all logging calls to STDERR
 
 logger.info("Here is a low level warning. It will be written to STDOUT and STDERR")
