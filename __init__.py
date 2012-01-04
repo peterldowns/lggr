@@ -35,7 +35,7 @@ class Lggr():
 		self.clearMethods()
 
 	
-	def addMethod(self, level, logger):
+	def add(self, level, logger):
 		""" Add a logging function to a specified level of importance.
 			If the level is None, then add the logging function to ALL
 			levels. """
@@ -45,7 +45,7 @@ class Lggr():
 		else:
 			self.loggers[level].add(logger)
 	
-	def removeMethod(self, level, logger):
+	def remove(self, level, logger):
 		""" If a logging function exists at a level,
 			remove it. If level is None, then remove the
 			logging function from all levels on which it exists. """
@@ -61,7 +61,7 @@ class Lggr():
 		else:
 			delMeth(self.loggers[level], logger)
 	
-	def getMethods(self, level=None):
+	def get(self, level=None):
 		""" Return a list of the logger functions associated with
 			a logging level. If the level is none, return a list 
 			of lists of these functions for each level, in order. """
@@ -69,7 +69,7 @@ class Lggr():
 			return map(list, self.loggers)
 		return list(self.loggers[level])
 
-	def clearMethods(self, level=None):
+	def clear(self, level=None):
 		""" Remove all logger functions from a given level. If the
 			level is none, remove all logger functions. """
 		def clrMeth(lvl):
@@ -83,7 +83,7 @@ class Lggr():
 			for lvl in self.loggers:
 				clrMeth(lvl)
 	
-	def logHistory(self):
+	def history(self):
 		""" Return the internal history of all calls to log(). """
 		return self.history
 	
@@ -94,7 +94,6 @@ class Lggr():
 		self.history.append((time.time(), level, message))
 	
 		if not self.turned_on:
-			print "I AM NOT TURNED ON"
 			return # Fail silently so that logging can easily be removed
 
 		levset = self.loggers[level]
