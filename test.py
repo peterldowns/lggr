@@ -10,7 +10,7 @@ try:
 except Exception as e:
 	print e
 
-for i, level in enumerate(d.getMethods()):
+for i, level in enumerate(d.get()):
 	print "Level {}:".format(i)
 	for item in level:
 		print '\t{}'.format(item)

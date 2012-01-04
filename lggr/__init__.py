@@ -32,7 +32,7 @@ class Lggr():
 		self.turned_on = True
 	
 	def close(self):
-		self.clearMethods()
+		self.clear()
 
 	
 	def add(self, level, logger):
@@ -101,7 +101,7 @@ class Lggr():
 			try:
 				logger.send(message)
 			except StopIteration: # already closed
-				self.removeMethod(levset, logger)
+				self.remove(levset, logger)
 				self.info("Logging function {} in level {} stopped.", logger, levset)
 
 	def critical(self, msg, *args, **kwargs):

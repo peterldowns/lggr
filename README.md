@@ -16,9 +16,9 @@ logger = lggr.Lggr() # create a logging object
 logger.disable() # silently stop logging - for when you don't need it, but might in the future
 logger.enable() # turn the logging back on
 
-logger.addMethod(lggr.INFO, lggr.Printer()) # log all info() calls to STDOUT
-logger.addMethod(lggr.CRITICAL, lggr.FilePrinter("output.log")) # log all critical() calls to an output file
-logger.addMethod(None, lggr.ErrorPrinter()) # log all logging calls to STDERR
+logger.add(lggr.INFO, lggr.Printer()) # log all info() calls to STDOUT
+logger.add(lggr.CRITICAL, lggr.FilePrinter("output.log")) # log all critical() calls to an output file
+logger.add(None, lggr.ErrorPrinter()) # log all logging calls to STDERR
 
 logger.info("Here is a low level warning. It will be written to STDOUT and STDERR")
 logger.warning("This is a warning. It is written to STDERR.")
@@ -30,7 +30,7 @@ logger.info("{noun} is so {adjective}, I'd {verb} its {pl_noun}",
 
 logger.warning("WARNING: {} is a {}. You should know this", lggr.Lggr, type(lggr.Lggr))
 
-logger.clearMethods(lggr.CRITICAL) # remove all methods from a specific level
+logger.clear(lggr.CRITICAL) # remove all methods from a specific level
 
 logger.close() # stop logging
 ```
