@@ -40,8 +40,8 @@ class Lggr():
 			If the level is None, then add the logging function to ALL
 			levels. """
 		if level is None:
-			for level in self.loggers:
-				level.add(logger)
+			for level_set in self.loggers:
+				level_set.add(logger)
 		else:
 			self.loggers[level].add(logger)
 	
@@ -133,12 +133,10 @@ def Printer(open_file=sys.stdout, closing=False):
 			try: open_file.close()
 			except: pass
 
-@Coroutine
 def ErrorPrinter():
 	""" Prints items to stderr. """
 	return Printer(open_file=sys.stderr, closing=False)
 
-@Coroutine
 def FilePrinter(filename, mode='a', closing=True):
 	""" Opens the given file and returns a printer to it. """
 	f = open(filename, mode)
