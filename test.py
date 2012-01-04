@@ -2,23 +2,24 @@ import lggr
 
 d = lggr.Lggr()
 
-d.add(None, lggr.FilePrinter("output.log"))
-d.add(None, lggr.ErrorPrinter())
-d.add(None, lggr.Printer())
+d.add(lggr.ALL, lggr.PrintToFile("output.log"))
+d.add(lggr.ALL, lggr.PrintError())
+d.add(lggr.ALL, lggr.Print())
 try:
-	d.add(None, lggr.Emailer(["peter.l.downs@gmail.com"], "peter"))
+	d.add(None, lggr.SendEmail(["peter.l.downs@gmail.com"], "peter"))
 except Exception as e:
 	print e
 
-for i, level in enumerate(d.get()):
-	print "Level {}:".format(i)
-	for item in level:
-		print '\t{}'.format(item)
+for level, log_funcs in d.config.iteritems():
+	print "Level {}:".format(level)
+	for lf in log_funcs:
+		print '\t{}'.format(lf)
 
 d.info("Hello, world!")
 d.warning("My name is {}", "Peter")
 d.error("Testing some {name} logging", name="ERROR")
 d.critical("Oh shit, nigel. Something is horribly wrong.")
+d.all("This goes out to all of my friends")
 
 d.clear(lggr.CRITICAL)
 d.clear(lggr.WARNING)
