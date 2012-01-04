@@ -1,4 +1,5 @@
 from coroutine import Coroutine
+import inspect
 import smtplib
 import socket
 import types
@@ -10,7 +11,7 @@ CRITICAL = "CRITICAL"
 ERROR = "ERROR"
 WARNING = "WARNING"
 INFO = "INFO"
-ALL = [CRITICAL, ERROR, WARNING, INFO]
+ALL = [EXCEPTION, CRITICAL, ERROR, WARNING, INFO]
 
 class Lggr():
 	""" Simplified logging. Dispatches messages to any type of
