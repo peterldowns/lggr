@@ -16,9 +16,9 @@ logger = lggr.Lggr() # create a logging object
 logger.disable() # silently stop logging - for when you don't need it, but might in the future
 logger.enable() # turn the logging back on
 
-logger.add(lggr.INFO, lggr.Printer()) # log all info() calls to STDOUT
-logger.add(lggr.CRITICAL, lggr.FilePrinter("output.log")) # log all critical() calls to an output file
-logger.add(None, lggr.ErrorPrinter()) # log all logging calls to STDERR
+logger.add([lggr.INFO], lggr.Printer()) # log all info() calls to STDOUT
+logger.add([lggr.CRITICAL], lggr.FilePrinter("output.log")) # log all critical() calls to an output file
+logger.add(lggr.ALL, lggr.ErrorPrinter()) # log all logging calls to STDERR
 
 logger.info("Here is a low level warning. It will be written to STDOUT and STDERR")
 logger.warning("This is a warning. It is written to STDERR.")
@@ -29,17 +29,18 @@ logger.info("{noun} is so {adjective}, I'd {verb} its {pl_noun}",
 			noun="lggr", adjective="cool", verb="test", pl_noun="functions")
 
 logger.warning("WARNING: {} is a {}. You should know this", lggr.Lggr, type(lggr.Lggr))
+logger.all("This goes out to every level in {level_list}", level_list=logger.ALL)
 
 logger.clear(lggr.CRITICAL) # remove all methods from a specific level
 
 logger.close() # stop logging
 ```
 
-`lggr.Printer`, `lggr.ErrorPrinter`, and `lggr.FilePrinter` (as well as `lggr.SocketWriter` and `lggr.Emailer`) are all built-in logging functions that log to STDOUT, STDERR, and a specified file (as well as a host/socket and email addresses), respectively. New logging functions are easy to create because they're coroutines.
+`lggr.Print`, `lggr.PrintError`, and `lggr.PrintToFile` (as well as `lggr.WriteToSocket` and `lggr.SendEmail`) are all built-in logging functions that log to STDOUT, STDERR, and a specified file (as well as a host/socket and email addresses), respectively. New logging functions are easy to create because they're coroutines.
 
 ```python
 @Coroutine
-def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
+def WriteToSocket(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
 	""" Writes messages to a socket/host. """
 	# this is the setup area. This is only run once, when the function is called for the first time
 	message = "({0}): {1}"
