@@ -1,12 +1,12 @@
-import __init__ as lggr
+import lggr
 
 d = lggr.Lggr()
 
-d.addMethod(None, lggr.FilePrinter("output.log"))
-d.addMethod(None, lggr.ErrorPrinter())
-d.addMethod(None, lggr.Printer())
+d.add(None, lggr.FilePrinter("output.log"))
+d.add(None, lggr.ErrorPrinter())
+d.add(None, lggr.Printer())
 try:
-	d.addMethod(None, lggr.Emailer(["peter.l.downs@gmail.com"], "peter"))
+	d.add(None, lggr.Emailer(["peter.l.downs@gmail.com"], "peter"))
 except Exception as e:
 	print e
 
@@ -20,9 +20,9 @@ d.warning("My name is {}", "Peter")
 d.error("Testing some {name} logging", name="ERROR")
 d.critical("Oh shit, nigel. Something is horribly wrong.")
 
-d.clearMethods(lggr.CRITICAL)
-d.clearMethods(lggr.WARNING)
-d.clearMethods(lggr.INFO)
+d.clear(lggr.CRITICAL)
+d.clear(lggr.WARNING)
+d.clear(lggr.INFO)
 
 d.info("Testing....")
 d.error("Testing {0} {1} {2}", "another", "stupid", "thing")
