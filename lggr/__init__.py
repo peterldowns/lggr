@@ -98,7 +98,7 @@ class Lggr():
 		self.log(ALL, msg, *args, **kwargs)
 
 @Coroutine
-def Print(open_file=sys.stdout, closing=False):
+def Printer(open_file=sys.stdout, closing=False):
 	""" Prints items with a timestamp. """
 	message = "({0}): {1}\n"
 	try:
@@ -110,17 +110,17 @@ def Print(open_file=sys.stdout, closing=False):
 			try: open_file.close()
 			except: pass
 
-def PrintError():
+def StderrPrinter():
 	""" Prints items to stderr. """
-	return Print(open_file=sys.stderr, closing=False)
+	return Printer(open_file=sys.stderr, closing=False)
 
-def PrintToFile(filename, mode='a', closing=True):
+def FilePrinter(filename, mode='a', closing=True):
 	""" Opens the given file and returns a printer to it. """
 	f = open(filename, mode)
-	return Print(f, closing)
+	return Printer(f, closing)
 
 @Coroutine
-def WriteToSocket(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
+def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
 	""" Writes messages to a socket/host. """
 	message = "({0}): {1}"
 	s = socket.socket(af, st)
@@ -133,7 +133,7 @@ def WriteToSocket(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
 		s.close()
 
 @Coroutine
-def SendEmail(recipients, sender=None):
+def Emailer(recipients, sender=None):
 	""" Sends messages as emails to the given list
 		of recipients. """
 	hostname = socket.gethostname()

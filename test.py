@@ -2,11 +2,11 @@ import lggr
 
 d = lggr.Lggr()
 
-d.add(lggr.ALL, lggr.PrintToFile("output.log"))
-d.add(lggr.ALL, lggr.PrintError())
-d.add(lggr.ALL, lggr.Print())
+d.add(lggr.ALL, lggr.FilePrinter("output.log"))
+d.add(lggr.ALL, lggr.StderrPrinter())
+d.add(lggr.ALL, lggr.Printer())
 try:
-	d.add(None, lggr.SendEmail(["peter.l.downs@gmail.com"], "peter"))
+	d.add(None, lggr.Emailer(["peter.l.downs@gmail.com"], "peter"))
 except Exception as e:
 	print e
 

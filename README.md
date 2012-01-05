@@ -16,7 +16,7 @@ logger = lggr.Lggr() # create a logging object
 logger.disable() # silently stop logging - for when you don't need it, but might in the future
 logger.enable() # turn the logging back on
 
-logger.add([lggr.INFO], lggr.Printer()) # log all info() calls to STDOUT
+logger.add([lggr.INFO], lggr.Printerer()) # log all info() calls to STDOUT
 logger.add([lggr.CRITICAL], lggr.FilePrinter("output.log")) # log all critical() calls to an output file
 logger.add(lggr.ALL, lggr.ErrorPrinter()) # log all logging calls to STDERR
 
@@ -36,11 +36,13 @@ logger.clear(lggr.CRITICAL) # remove all methods from a specific level
 logger.close() # stop logging
 ```
 
-`lggr.Print`, `lggr.PrintError`, and `lggr.PrintToFile` (as well as `lggr.WriteToSocket` and `lggr.SendEmail`) are all built-in logging functions that log to STDOUT, STDERR, and a specified file (as well as a host/socket and email addresses), respectively. New logging functions are easy to create because they're coroutines.
+`lggr.Printer`, `lggr.StderrPrinter`, and `lggr.FilePrinter` (as well as `lggr.SocketWriter` and `lggr.Emailer`) are all built-in logging functions that log to STDOUT, STDERR, and a specified file (as well as a host/socket and email addresses), respectively. I think that it really is fine to have the "[Verb]er" name format because, really, that's what they are: these functions return coroutines which do what they say. I.e., `lggr.Printer()` returns a coroutine that writes all items that are `.sent()` to it to `sys.stdout`. 
+
+New logging functions are easy to create because they're coroutines. For example, here's the source for `lggr.SocketWriter`, marked up with extra information.
 
 ```python
 @Coroutine
-def WriteToSocket(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
+def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
 	""" Writes messages to a socket/host. """
 	# this is the setup area. This is only run once, when the function is called for the first time
 	message = "({0}): {1}"
