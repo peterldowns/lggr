@@ -137,7 +137,8 @@ def Emailer(recipients, sender=None):
 	""" Sends messages as emails to the given list
 		of recipients. """
 	hostname = socket.gethostname()
-	sender = "lggr@{}".format(hostname)
+	if not sender:
+		sender = "lggr@{}".format(hostname)
 	smtp = smtplib.SMTP('localhost')
 	try:
 		while True:
