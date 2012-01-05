@@ -29,7 +29,7 @@ logger.info("{noun} is so {adjective}, I'd {verb} its {pl_noun}",
 			noun="lggr", adjective="cool", verb="test", pl_noun="functions")
 
 logger.warning("WARNING: {} is a {}. You should know this", lggr.Lggr, type(lggr.Lggr))
-logger.all("This goes out to every level in {level_list}", level_list=logger.ALL)
+logger.all("This goes out to every level in {level_list}", level_list=lggr.ALL)
 
 logger.clear(lggr.CRITICAL) # remove all methods from a specific level
 
