@@ -1,3 +1,4 @@
+
 # Lggr - easy python logging
 
 Have you ever tried to do anything with the python logging module?
@@ -8,6 +9,8 @@ I've been inspired by [dabeaz](http://www.dabeaz.com/)'s presentation on corouti
 
 # How does it work?
 
+***WARNING: this doc is not up to date. It will be soon. Please refer to the source code.***
+
 Here's an example of adding lggr to an application.
 
 ```python
@@ -16,7 +19,7 @@ logger = lggr.Lggr() # create a logging object
 logger.disable() # silently stop logging - for when you don't need it, but might in the future
 logger.enable() # turn the logging back on
 
-logger.add([lggr.INFO], lggr.Printerer()) # log all info() calls to STDOUT
+logger.add(lggr.INFO, lggr.Printerer()) # log all info() calls to STDOUT
 logger.add([lggr.CRITICAL], lggr.FilePrinter("output.log")) # log all critical() calls to an output file
 logger.add(lggr.ALL, lggr.ErrorPrinter()) # log all logging calls to STDERR
 
