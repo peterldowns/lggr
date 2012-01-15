@@ -65,7 +65,6 @@ I think that coroutines are a good way of thinking about log functions. After al
 
 # What's next?
 I'm still working on emailing, text-sending, and IRC/IM-writing log functions - maybe one of you could help!
-Right now, this library is lacking stack-traces and file info (darn!) but I'm working on it. I'm going to try to add some `sys`/`inspect` calls soon. 
 
 # Who did this?
 Peter Downs.
