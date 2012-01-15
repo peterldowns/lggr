@@ -1,6 +1,7 @@
 from coroutine import Coroutine
 from coroutine import CoroutineProcess
 import threading
+import traceback
 import inspect
 import smtplib
 import socket
@@ -13,24 +14,42 @@ CRITICAL = "CRITICAL"
 ERROR = "ERROR"
 WARNING = "WARNING"
 INFO = "INFO"
-ALL = [EXCEPTION, CRITICAL, ERROR, WARNING, INFO]
+ALL = [INFO, WARNING, ERROR, CRITICAL, EXCEPTION]
+
+# ripped from http://hg.python.org/cpython/file/74fa415dc715/Lib/logging/__init__.py#l81
+if hasattr(sys, 'frozen'): #support for py2exe
+	_srcfile = "logging%s__init%s" % (os.sep, __file[-4:])
+else:
+	_srcfile = __file__
+_srcfile = os.path.normcase(_srcfile)
+
+try:
+	import threading
+except:
+	threading = None
+try: 
+	import multiprocessing as mp
+except:
+	mp = None
 
 class Lggr():
 	""" Simplified logging. Dispatches messages to any type of
 		logging function you want to write, all it has to support
 		is send() and close(). """
-	def __init__(self, default_fmt="{asctime} ({level}) {log_message}"):
+	def __init__(self, defaultfmt="{asctime} ({levelname}) {logmessage}"):
+		self.defaultfmt = defaultfmt
 		self.config = {
 				EXCEPTION: set(), # these are different levels of logger functions
 				CRITICAL: set(),
 				ERROR: set(),
 				WARNING: set(),
 				INFO: set(),
-				"default_fmt": default_fmt
+				"defaultfmt": self.defaultfmt # lets lggrname.defaulfmt act as a shortcut
 			}
 		self.history = []
 		self.enabled = True
 	
+
 	def disable(self):
 		""" Turn off logging. """
 		self.enabled = False
@@ -46,8 +65,11 @@ class Lggr():
 	def add(self, levels, logger):
 		""" Given a list of logging levels, add a logger
 			instance to each. """
-		for lvl in levels:
-			self.config[lvl].add(logger)
+		if isinstance(levels, list):
+			for lvl in levels:
+				self.config[lvl].add(logger)
+		else:
+			self.config[levels].add(logger)
 	
 	def remove(self, level, logger):
 		""" Given a level, remove a given logger function
@@ -62,37 +84,94 @@ class Lggr():
 			item.close()
 		self.config[level].clear()
 	
-	def log(self, level, fmt, *args, **kwargs):
+	def log(self, level, fmt, exc_info=None, stack_info=True, multi_proc=True, *args, **kwargs):
+		print level
 		""" Send a log message to all of the logging functions
 			for a given level as well as adding the
 			message to this logger instance's history. """
 		if not self.enabled:
 			return # Fail silently so that logging can easily be removed
+		
+		sinfo = None
+		if _srcfile:
+			#IronPython doesn't track Python frames, so findCaller throws an
+			#exception on some versionf of IronPython. We trap it here so that
+			#IronPython can use logging.
+			try:
+				fn, lno, func, sinfo = self.findCaller(stack_info)
+			except ValueError:
+				fn, lno, func = "(unknown file)", 0, "(unknown function)"
+		else:
+			fn, lno, func = "(unknown file)", 0, "(unknown function)"
 
+		try:
+			fname = os.path.basename(fn)
+			module = os.path.splitext(fname)[0]
+		except (TypeError, ValueError, AttributeError):
+			fname = fn
+			module = "Unknown module"
+
+		if exc_info:
+			if not isinstance(exc_info, tuple):
+				exc_info = sys.exc_info()
+		
 		log_record = { # This is available information for logging functions.
-			#TODO:  proc_name, thread_name, filename, funcname, lineno, module, pathname
+			#TODO:  proc_name, thread_name
+			# see http://hg.python.org/cpython/file/74fa415dc715/Lib/logging/__init__.py#l279
 			"args" : args,
 			"kwargs" : kwargs,
-			"asctime": time.asctime(), # TODO: actual specifier
+			"levelname" : level,
+			"levelno" : ALL.index(level),
+			"pathname" : fn,
+			"filename" : fname,
+			"module" : module,
+			"exc_info" : exc_info,
+			"exc_text" : None,
+			"stack_info" : sinfo,
+			"lineno" : lno,
+			"funcname" : func,
+			"process" : os.getpid(),
+			"processname" : None,
+			"asctime": time.asctime(), # TODO: actual specifier for format
 			"time" : time.time(),
-			"exc_info" : sys.exc_info(),
-			"level" : level,
-			"message_fmt" : fmt,
-			"log_message" : fmt.format(*args, **kwargs),
-			"proc_id" : os.getpid(),
-			"thread" : threading.currentThread(),
-			"default_fmt" : self.config['default_fmt'],
+			"threadid" : None,
+			"threadname" : None,
+			"messagefmt" : fmt,
+			"logmessage" : fmt.format(*args, **kwargs),
+			"defaultfmt" : self.config['defaultfmt']
 		}
+		
+		if threading: # check to use threading
+			curthread = threading.current_thread()
+			log_record.update({
+				"threadident" : curthread.ident,
+				"threadname" : curthread.name
+			})
 
-		if 'default_fmt' in kwargs:
-			log_record['default_fmt'] = kwargs['default_fmt'] # allow custom formats
+		if not multi_proc: # check to use multiprocessing
+			procname = None
+		else:
+			procname = "MainProcess"
+			if mp:
+				try:
+					procname = mp.curent_process().name
+				except StandardError:
+					pass
+		log_record.update({
+			"procname" : procname
+		})
+
+
+
+		if 'defaultfmt' in kwargs:
+			log_record['defaultfmt'] = kwargs['defaultfmt'] # allow custom formats
 		if 'extra' in kwargs:
 			log_record.update(kwargs['extra']) # allow custom information to be sent in
 
-		logstr = log_record['default_fmt'].format(**log_record) #whoah.
-
+		# FINALLY, do the logging
+		logstr = log_record['defaultfmt'].format(**log_record) #whoah.
 		self.history.append(logstr)
-
+		print "about to do log_funcs=self.config[{}]".format(level)
 		log_funcs = self.config[level]
 		to_remove = []
 		for lf in log_funcs:
@@ -132,6 +211,28 @@ class Lggr():
 	def all(self, msg, *args, **kwargs):
 		""" Log a message at every known log level """
 		self.multi(ALL, msg, *args, **kwargs)
+	
+	def findCaller(self, stack_info=False):
+		"""
+		Find the stack frame of the caller so that we can note the source
+		file name, line number, and function name
+		"""
+		f = inspect.currentframe()
+		if f is not None:
+			f = f.f_back
+		rv = ("(unknown file)", 0, "(unknown function)", None)
+		while hasattr(f, "f_code"):
+			co = f.f_code
+			filename = os.path.normcase(co.co_filename)
+			if filename == _srcfile:
+				f = f.f_back
+				continue
+			sinfo = None
+			if stack_info:
+				sinfo = traceback.extract_stack(f)
+			rv = (co.co_filename, f.f_lineno, co.co_name, sinfo)
+			break
+		return rv
 
 @Coroutine
 def Printer(open_file=sys.stdout, closing=False):
