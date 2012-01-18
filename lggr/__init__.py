@@ -48,7 +48,14 @@ class Lggr():
 			}
 		self.history = []
 		self.enabled = True
-		self.ALL = ALL # allow instance.ALL instead of just lggr.ALL
+		
+		# allow instance.LEVEL instead of lggr.LEVEL
+		self.ALL = ALL 
+		self.DEBUG = DEBUG
+		self.INFO = INFO
+		self.WARNING = WARNING
+		self.ERROR = ERROR
+		self.CRITICAL = CRITICAL
 	
 
 	def disable(self):
@@ -123,14 +130,12 @@ class Lggr():
 		log_record = { # This is available information for logging functions.
 			#TODO:  proc_name, thread_name
 			# see http://hg.python.org/cpython/file/74fa415dc715/Lib/logging/__init__.py#l279
-			"args" : args,
 			"levelname" : level,
 			"levelno" : ALL.index(level),
 			"pathname" : fn,
 			"filename" : fname,
 			"module" : module,
 			"exc_info" : exc_info,
-			"exc_text" : None,
 			"stack_info" : sinfo,
 			"lineno" : lno,
 			"funcname" : func,
