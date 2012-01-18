@@ -1,21 +1,20 @@
 from coroutine import Coroutine
 from coroutine import CoroutineProcess
-import threading
+from coroutine import CoroutineThread
 import traceback
 import inspect
-import smtplib
-import socket
 import time
 import sys
 import os
 
-EXCEPTION = "EXCEPTION"
-CRITICAL = "CRITICAL"
-ERROR = "ERROR"
-WARNING = "WARNING"
+DEBUG = "DEBUG"
 INFO = "INFO"
-ALL = [INFO, WARNING, ERROR, CRITICAL, EXCEPTION]
+WARNING = "WARNING"
+ERROR = "ERROR"
+CRITICAL = "CRITICAL"
+ALL = [DEBUG, INFO, WARNING, ERROR, CRITICAL] # shortcut
 
+# Allow function, module, sourcecode information
 # ripped from http://hg.python.org/cpython/file/74fa415dc715/Lib/logging/__init__.py#l81
 if hasattr(sys, 'frozen'): #support for py2exe
 	_srcfile = "logging%s__init%s" % (os.sep, __file[-4:])
@@ -23,6 +22,7 @@ else:
 	_srcfile = __file__
 _srcfile = os.path.normcase(_srcfile)
 
+# 
 try:
 	import threading
 except:
@@ -39,15 +39,16 @@ class Lggr():
 	def __init__(self, defaultfmt="{asctime} ({levelname}) {logmessage}"):
 		self.defaultfmt = defaultfmt
 		self.config = {
-				EXCEPTION: set(), # these are different levels of logger functions
-				CRITICAL: set(),
+				CRITICAL: set(), # these are different levels of logger functions
 				ERROR: set(),
+				DEBUG: set(),
 				WARNING: set(),
 				INFO: set(),
 				"defaultfmt": self.defaultfmt # lets lggrname.defaulfmt act as a shortcut
 			}
 		self.history = []
 		self.enabled = True
+		self.ALL = ALL # allow instance.ALL instead of just lggr.ALL
 	
 
 	def disable(self):
@@ -59,8 +60,11 @@ class Lggr():
 		self.enabled = True
 	
 	def close(self):
+		""" Stop and remove all logging functions
+			and disable this logger. """
 		for level in ALL:
 			self.clear(level)
+		self.disable()
 	
 	def add(self, levels, logger):
 		""" Given a list of logging levels, add a logger
@@ -84,13 +88,12 @@ class Lggr():
 			item.close()
 		self.config[level].clear()
 	
-	def log(self, level, fmt, exc_info=None, stack_info=True, multi_proc=True, *args, **kwargs):
-		print level
-		""" Send a log message to all of the logging functions
-			for a given level as well as adding the
-			message to this logger instance's history. """
-		if not self.enabled:
-			return # Fail silently so that logging can easily be removed
+	def makeRecord(self, level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc):
+		""" Create a 'record' (a dictionary) with information to be logged. """
+		if args and len(args) == 1 and isinstance(args[0], dict) and args[0]:
+			# args can be a list of unnamed variables or a dict of named variables
+			# to be used with str.format()
+			args = args[0]
 		
 		sinfo = None
 		if _srcfile:
@@ -103,7 +106,6 @@ class Lggr():
 				fn, lno, func = "(unknown file)", 0, "(unknown function)"
 		else:
 			fn, lno, func = "(unknown file)", 0, "(unknown function)"
-
 		try:
 			fname = os.path.basename(fn)
 			module = os.path.splitext(fname)[0]
@@ -111,15 +113,14 @@ class Lggr():
 			fname = fn
 			module = "Unknown module"
 
-		if exc_info:
-			if not isinstance(exc_info, tuple):
-				exc_info = sys.exc_info()
+		if not exc_info or not isinstance(exc_info, tuple):
+			# Allow passed in exc_info, but supply it if it isn't
+			exc_info = sys.exc_info()
 		
 		log_record = { # This is available information for logging functions.
 			#TODO:  proc_name, thread_name
 			# see http://hg.python.org/cpython/file/74fa415dc715/Lib/logging/__init__.py#l279
 			"args" : args,
-			"kwargs" : kwargs,
 			"levelname" : level,
 			"levelno" : ALL.index(level),
 			"pathname" : fn,
@@ -137,14 +138,19 @@ class Lggr():
 			"threadid" : None,
 			"threadname" : None,
 			"messagefmt" : fmt,
-			"logmessage" : fmt.format(*args, **kwargs),
+			"logmessage" : fmt.format(*args),
+			# The custom `extra` information can only be used to format the default
+			#   format. The `logmessage` can only be passed a dictionary or a list
+			#   (as `args`).
 			"defaultfmt" : self.config['defaultfmt']
 		}
+		if extra:
+			log_record.update(extra) # add custom variables to record
 		
 		if threading: # check to use threading
 			curthread = threading.current_thread()
 			log_record.update({
-				"threadident" : curthread.ident,
+				"threadid" : curthread.ident,
 				"threadname" : curthread.name
 			})
 
@@ -158,20 +164,24 @@ class Lggr():
 				except StandardError:
 					pass
 		log_record.update({
-			"procname" : procname
+			"processname" : procname
 		})
 
+		return log_record
 
+	def log(self, level, fmt, args, extra=None, exc_info=None, inc_stack_info=False, inc_multi_proc=False):
+		""" Send a log message to all of the logging functions
+			for a given level as well as adding the
+			message to this logger instance's history. """
+		if not self.enabled:
+			return # Fail silently so that logging can easily be removed
 
-		if 'defaultfmt' in kwargs:
-			log_record['defaultfmt'] = kwargs['defaultfmt'] # allow custom formats
-		if 'extra' in kwargs:
-			log_record.update(kwargs['extra']) # allow custom information to be sent in
+		log_record = self.makeRecord(level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc)
 
-		# FINALLY, do the logging
 		logstr = log_record['defaultfmt'].format(**log_record) #whoah.
+		
 		self.history.append(logstr)
-		print "about to do log_funcs=self.config[{}]".format(level)
+		
 		log_funcs = self.config[level]
 		to_remove = []
 		for lf in log_funcs:
@@ -181,36 +191,48 @@ class Lggr():
 				to_remove.append(lf)
 		for lf in to_remove:
 			self.remove(level, lf)
-			self.info("Logging function {} in level {} stopped.", lf, level)
+			self.info("Logging function {} removed from level {}", lf, level)
 
-	def exception(self, msg, *args, **kwargs):
-		""" Log a message with EXCEPTION level """
-		self.log(EXCEPTION, msg, *args, **kwargs)
-
-	def critical(self, msg, *args, **kwargs):
-		""" Log a message with CRITICAL level """
-		self.log(CRITICAL, msg, *args, **kwargs)
-
-	def error(self, msg, *args, **kwargs):
-		""" Log a message with ERROR level """
-		self.log(ERROR, msg, *args, **kwargs)
-
+#debug, info, warning, error, critical
+	def info(self, msg, *args, **kwargs):
+		"""" Log a message with INFO level """   
+		self.log(INFO, msg, args, **kwargs)
+	
 	def warning(self, msg, *args, **kwargs):
 		""" Log a message with WARNING level """
-		self.log(WARNING, msg, *args, **kwargs)
-		
-	def info(self, msg, *args, **kwargs):
-		""" Log a message with INFO level """
-		self.log(INFO, msg, *args, **kwargs)
+		self.log(WARNING, msg, args, **kwargs)
+
+	def debug(self, msg, *args, **kwargs):
+		""" Log a message with DEBUG level. Automatically
+			includes stack info unless it is specifically not
+			included. """
+		kwargs["inc_stack_info"] = kwargs.get("inc_stack_info", True)
+		self.log(DEBUG, msg, args, **kwargs)
+	
+	def error(self, msg, *args, **kwargs):
+		""" Log a message with ERROR level. Automatically
+			includes stack and process info unless they
+			are specifically not included. """
+		kwargs["inc_stack_info"] = kwargs.get("inc_stack_info", True)
+		kwargs["inc_multi_proc"] = kwargs.get("inc_multi_proc", True)
+		self.log(ERROR, msg, args, **kwargs)
+
+	def critical(self, msg, *args, **kwargs):
+		""" Log a message with CRITICAL level. Automatically
+			includes stack and process info unless they are
+			specifically not included. """
+		kwargs["inc_stack_info"] = kwargs.get("inc_stack_info", True)
+		kwargs["inc_multi_proc"] = kwargs.get("inc_multi_proc", True)
+		self.log(CRITICAL, msg, args, **kwargs)
 		
 	def multi(self, lvl_list, msg, *args, **kwargs):
 		""" Log a message at multiple levels"""
 		for level in lvl_list:
-			self.log(level, msg, *args, **kwargs)
+			self.log(level, msg, args, **kwargs)
 
 	def all(self, msg, *args, **kwargs):
 		""" Log a message at every known log level """
-		self.multi(ALL, msg, *args, **kwargs)
+		self.multi(ALL, msg, args, **kwargs)
 	
 	def findCaller(self, stack_info=False):
 		"""
@@ -252,10 +274,12 @@ def StderrPrinter():
 	return Printer(open_file=sys.stderr, closing=False)
 
 def FilePrinter(filename, mode='a', closing=True):
+	path = os.path.abspath(filename)
 	""" Opens the given file and returns a printer to it. """
-	f = open(filename, mode)
+	f = open(path, mode)
 	return Printer(f, closing)
 
+import socket
 @Coroutine
 def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
 	""" Writes messages to a socket/host. """
@@ -269,6 +293,7 @@ def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
 	except GeneratorExit:
 		s.close()
 
+import smtplib
 @Coroutine
 def Emailer(recipients, sender=None):
 	""" Sends messages as emails to the given list
