@@ -90,10 +90,13 @@ class Lggr():
 	
 	def makeRecord(self, level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc):
 		""" Create a 'record' (a dictionary) with information to be logged. """
+		
+		args_dict=False
 		if args and len(args) == 1 and isinstance(args[0], dict) and args[0]:
 			# args can be a list of unnamed variables or a dict of named variables
 			# to be used with str.format()
 			args = args[0]
+			args_dict=True
 		
 		sinfo = None
 		if _srcfile:
@@ -101,7 +104,7 @@ class Lggr():
 			#exception on some versionf of IronPython. We trap it here so that
 			#IronPython can use logging.
 			try:
-				fn, lno, func, sinfo = self.findCaller(stack_info)
+				fn, lno, func, sinfo = self.findCaller(inc_stack_info)
 			except ValueError:
 				fn, lno, func = "(unknown file)", 0, "(unknown function)"
 		else:
@@ -138,12 +141,20 @@ class Lggr():
 			"threadid" : None,
 			"threadname" : None,
 			"messagefmt" : fmt,
-			"logmessage" : fmt.format(*args),
+			"logmessage" : None,
 			# The custom `extra` information can only be used to format the default
 			#   format. The `logmessage` can only be passed a dictionary or a list
 			#   (as `args`).
 			"defaultfmt" : self.config['defaultfmt']
 		}
+		
+		# If the user passed a single dict, use that with format.
+		# Otherwise, format using the passed args
+		if args_dict:
+			log_record['logmessage'] = fmt.format(**args)
+		else:
+			log_record['logmessage'] = fmt.format(*args)
+
 		if extra:
 			log_record.update(extra) # add custom variables to record
 		
@@ -154,7 +165,7 @@ class Lggr():
 				"threadname" : curthread.name
 			})
 
-		if not multi_proc: # check to use multiprocessing
+		if not inc_multi_proc: # check to use multiprocessing
 			procname = None
 		else:
 			procname = "MainProcess"
@@ -169,7 +180,7 @@ class Lggr():
 
 		return log_record
 
-	def log(self, level, fmt, args, extra=None, exc_info=None, inc_stack_info=False, inc_multi_proc=False):
+	def log(self, level, fmt, args=None, extra=None, exc_info=None, inc_stack_info=False, inc_multi_proc=False):
 		""" Send a log message to all of the logging functions
 			for a given level as well as adding the
 			message to this logger instance's history. """
@@ -274,7 +285,7 @@ def StderrPrinter():
 	return Printer(open_file=sys.stderr, closing=False)
 
 def FilePrinter(filename, mode='a', closing=True):
-	path = os.path.abspath(filename)
+	path = os.path.abspath(os.path.expanduser(filename))
 	""" Opens the given file and returns a printer to it. """
 	f = open(path, mode)
 	return Printer(f, closing)
