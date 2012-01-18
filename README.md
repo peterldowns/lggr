@@ -1,4 +1,3 @@
-
 # Lggr - easy python logging
 
 Have you ever tried to do anything with the python logging module?
@@ -9,59 +8,68 @@ I've been inspired by [dabeaz](http://www.dabeaz.com/)'s presentation on corouti
 
 # How does it work?
 
-***WARNING: this doc is not up to date. It will be soon. Please refer to the source code.***
-
-Here's an example of adding lggr to an application.
+Create a logger object.
 
 ```python
 import lggr
-logger = lggr.Lggr() # create a logging object
-logger.disable() # silently stop logging - for when you don't need it, but might in the future
-logger.enable() # turn the logging back on
-
-logger.add(lggr.INFO, lggr.Printerer()) # log all info() calls to STDOUT
-logger.add([lggr.CRITICAL], lggr.FilePrinter("output.log")) # log all critical() calls to an output file
-logger.add(lggr.ALL, lggr.ErrorPrinter()) # log all logging calls to STDERR
-
-logger.info("Here is a low level warning. It will be written to STDOUT and STDERR")
-logger.warning("This is a warning. It is written to STDERR.")
-logger.critical("This message will show up on STDERR and also in the \"output.log\" file")
-
-# did I mention that it does arbitrary string.format()ing? yeah.
-logger.info("{noun} is so {adjective}, I'd {verb} its {pl_noun}",
-			noun="lggr", adjective="cool", verb="test", pl_noun="functions")
-
-logger.warning("WARNING: {} is a {}. You should know this", lggr.Lggr, type(lggr.Lggr))
-logger.all("This goes out to every level in {level_list}", level_list=lggr.ALL)
-
-logger.clear(lggr.CRITICAL) # remove all methods from a specific level
-
-logger.close() # stop logging
+d = lggr.Lggr()
 ```
 
-`lggr.Printer`, `lggr.StderrPrinter`, and `lggr.FilePrinter` (as well as `lggr.SocketWriter` and `lggr.Emailer`) are all built-in logging functions that log to STDOUT, STDERR, and a specified file (as well as a host/socket and email addresses), respectively. I think that it really is fine to have the "[Verb]er" name format because, really, that's what they are: these functions return coroutines which do what they say. I.e., `lggr.Printer()` returns a coroutine that writes all items that are `.sent()` to it to `sys.stdout`. 
+Add a coroutine (any function or object with `send` and `close` methods) to consume log messages. `lggr` includes some default ones:
 
-New logging functions are easy to create because they're coroutines. For example, here's the source for `lggr.SocketWriter`, marked up with extra information.
+* `lggr.Printer()` writes to stdout
+* `lggr.StderrPrinter()` writes to stderr
+* `lggr.Printer(filepath)` opens a file at `filepath` and writes to that.
+* `lggr.SocketWriter(host, port)` writes to a network socket
+* `lggr.Emailer(recipients)` sends emails
+
+You can choose to add different coroutines to different levels of logging. Maybe you want to receive emails for all of your critical messages, but only print to stderr for everything else.
 
 ```python
-@Coroutine
-def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
-	""" Writes messages to a socket/host. """
-	# this is the setup area. This is only run once, when the function is called for the first time
-	message = "({0}): {1}"
-	s = socket.socket(af, st)
-	s.connect(host, port)
-	try:
-		while True:
-			item = (yield) # item is an incoming log message. Nothing happens until it is received
-			# This is where the message is processed. Here, I send it to a a socket.
-			s.send(message.format(time.asctime(), item)) 
-	except GeneratorExit:
-		# This is where clean-up code should exist. This is run after the coroutine is .close()ed
-		s.close()
+d.add(d.ALL, lggr.Printer()) # d.ALL is a shortcut to add a coroutine to all levels
+d.add(d.CRITICAL, lggr.Emailer("peterldowns@gmail.com"))
 ```
 
-I think that coroutines are a good way of thinking about log functions. After all, they shouldn't do much - just log the message.
+3. Do some logging.
+
+```python
+d.info("Hello, world!")
+d.warning("Something seems to have gone {desc}", {"desc":"amuck!"})
+d.critical("Someone {} us {} the {}!", "set", "up", "bomb")
+d.close() # stop logging
+```
+
+# What kind of information can I log?
+Anything you want. Log messages are created using `str.format`, so you can really create anything you want. The default format includes access to the following variables:
+
+* `levelname` = level of logging as a string (`"INFO"`)
+* `levelno` =  level of logging as an integer (`0`)
+* `pathname` = path to the file that the logging function was called from (`~/test.py`)
+* `filename` = filename the logging function was called from (`test.py`)
+* `module` = module the logging function was called from (in this case, `None`)
+* `exc_info` = execution information, either passed in or `sys.info()`
+* `stack_info` = stack information, created if the `inc_stack_info` argument is `True` or the logging function is called with instance functions `critical`, `debug`, or `error`.
+* `lineno` = the line number
+* `funcname` = the function name 
+* `code` = the exact code that called the logging function
+* `codecontext` = surrounding 10 lines surrounding `code`
+* `process` = current process id
+* `processname` = name of the current process, if `multiprocessing` is available
+* `asctime` = time as a string (from `time.asctime()`)
+* `time` = time as seconds from epoch (from `time.time()`)
+* `threadid` = the thread id, if the `threading` module is available
+* `threadname` = the thred name, if the `threading` module is available
+* `messagefmt` = the format string to be used to create the log message
+* `logmessage` = the user's formatted message
+* `defaultfmt` = the default format of a log message
+
+If you want to use any extra information, simply pass in a dict with the named argument `extra`:`
+
+```python
+>>> d.config['defaultfmt'] = '{name} sez: {logmessage}'
+>>> d.info("This is the {}", "message", extra={"name":"Peter"})
+Peter sez: This is the message
+```
 
 # What's next?
 I'm still working on emailing, text-sending, and IRC/IM-writing log functions - maybe one of you could help!
