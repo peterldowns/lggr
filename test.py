@@ -20,7 +20,21 @@ d.debug("Hello, ")
 d.info("world!")
 d.warning("My name is {}", "Peter")
 d.error("Testing some {name} logging", {"name":"ERROR"})
-d.critical("Oh shit. Something is horribly wrong.")
+
+old = d.config['defaultfmt']
+d.config['defaultfmt'] = '{asctime} ({levelname}) {logmessage}\nIn {pathname}, line {lineno}:\n{codecontext}'
+def outer(a):
+	def inner(b):
+		def final(c):
+			d.critical("Easy as {}, {}, {}!", a, b, c)
+		return final
+	return inner
+
+outer(1)(2)(3)
+outer("a")("b")("c")
+
+
+d.config['defaultfmt'] = old
 d.all("This goes out to all of my friends")
 d.multi([lggr.WARNING, lggr.INFO], "This is only going to some of my friends")
 
