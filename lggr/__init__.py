@@ -104,11 +104,11 @@ class Lggr():
 			#exception on some versionf of IronPython. We trap it here so that
 			#IronPython can use logging.
 			try:
-				fn, lno, func, sinfo = self.findCaller(inc_stack_info)
+				fn, lno, func, code, cc, sinfo = self.findCaller(inc_stack_info)
 			except ValueError:
-				fn, lno, func = "(unknown file)", 0, "(unknown function)"
+				fn, lno, func, code, cc, sinfo = "(unknown file)", 0, "(unknown function)", "(code not available)", [], None
 		else:
-			fn, lno, func = "(unknown file)", 0, "(unknown function)"
+			fn, lno, func, code, cc, sinfo = "(unknown file)", 0, "(unknown function)", "(code not available)", [], None
 		try:
 			fname = os.path.basename(fn)
 			module = os.path.splitext(fname)[0]
@@ -134,6 +134,8 @@ class Lggr():
 			"stack_info" : sinfo,
 			"lineno" : lno,
 			"funcname" : func,
+			"code": code,
+			"codecontext": "".join(cc),
 			"process" : os.getpid(),
 			"processname" : None,
 			"asctime": time.asctime(), # TODO: actual specifier for format
@@ -147,7 +149,6 @@ class Lggr():
 			#   (as `args`).
 			"defaultfmt" : self.config['defaultfmt']
 		}
-		
 		# If the user passed a single dict, use that with format.
 		# Otherwise, format using the passed args
 		if args_dict:
@@ -251,19 +252,20 @@ class Lggr():
 		file name, line number, and function name
 		"""
 		f = inspect.currentframe()
-		if f is not None:
-			f = f.f_back
-		rv = ("(unknown file)", 0, "(unknown function)", None)
+		rv = ("(unknown file)", 0, "(unknown function)", "(code not available)", [], None)
 		while hasattr(f, "f_code"):
 			co = f.f_code
 			filename = os.path.normcase(co.co_filename)
 			if filename == _srcfile:
-				f = f.f_back
+				f = f.f_back # get out of this logging file
+				rv 
 				continue
 			sinfo = None
 			if stack_info:
 				sinfo = traceback.extract_stack(f)
-			rv = (co.co_filename, f.f_lineno, co.co_name, sinfo)
+				fname, lno, fnc, cc, i = inspect.getframeinfo(f, context=10)
+				code = cc[i]
+				rv = (fname, lno, fnc, code, cc, sinfo)
 			break
 		return rv
 
