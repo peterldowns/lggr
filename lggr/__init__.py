@@ -258,7 +258,6 @@ class Lggr():
 			filename = os.path.normcase(co.co_filename)
 			if filename == _srcfile:
 				f = f.f_back # get out of this logging file
-				rv 
 				continue
 			sinfo = None
 			if stack_info:
