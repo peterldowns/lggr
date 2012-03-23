@@ -22,6 +22,7 @@ Add a coroutine (any function or object with `send` and `close` methods) to cons
 * `lggr.Printer(filepath)` opens a file at `filepath` and writes to that.
 * `lggr.SocketWriter(host, port)` writes to a network socket
 * `lggr.Emailer(recipients)` sends emails
+* `lggr.GMailer(recipients, gmail_username, gmail_password, subject="optional")` also sends emails, but does it from Gmail which is way sexier than doing it from your own server.
 
 You can choose to add different coroutines to different levels of logging. Maybe you want to receive emails for all of your critical messages, but only print to stderr for everything else.
 
@@ -58,7 +59,7 @@ Anything you want. Log messages are created using `str.format`, so you can reall
 * `asctime` = time as a string (from `time.asctime()`)
 * `time` = time as seconds from epoch (from `time.time()`)
 * `threadid` = the thread id, if the `threading` module is available
-* `threadname` = the thred name, if the `threading` module is available
+* `threadname` = the thread name, if the `threading` module is available
 * `messagefmt` = the format string to be used to create the log message
 * `logmessage` = the user's formatted message
 * `defaultfmt` = the default format of a log message
@@ -72,12 +73,11 @@ Peter sez: This is the message
 ```
 
 # What's next?
-I'm still working on emailing, text-sending, and IRC/IM-writing log functions - maybe one of you could help!
+I'm still working on text-sending and IRC/IM-writing log functions - maybe one of you could help? 
 
 # Who did this?
-Peter Downs.
-
-peter.l.downs@gmail.com
-
+[Peter Downs.](http://peterdowns.com)  
+[peterldowns@gmail.com](mailto:peterldowns@gmail.com)  
 [@peterldowns](http://twitter.com/peterldowns)
+
 
