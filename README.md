@@ -49,7 +49,7 @@ Anything you want. Log messages are created using `str.format`, so you can reall
 * `filename` = filename the logging function was called from (`test.py`)
 * `module` = module the logging function was called from (in this case, `None`)
 * `exc_info` = execution information, either passed in or `sys.info()`
-* `stack_info` = stack information, created if the `inc_stack_info` argument is `True` or the logging function is called with instance functions `critical`, `debug`, or `error`.
+* `stack_info` = stack information, created if the optional `inc_stack_info` argument is `True` (it defaults to `False` if not explicitly passed) or the logging function is called with instance functions `critical`, `debug`, or `error`.
 * `lineno` = the line number
 * `funcname` = the function name 
 * `code` = the exact code that called the logging function
