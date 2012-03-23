@@ -106,12 +106,12 @@ class Lggr():
 			args_dict=True
 		
 		sinfo = None
-		if _srcfile:
+		if _srcfile and inc_stack_info:
 			#IronPython doesn't track Python frames, so findCaller throws an
 			#exception on some versionf of IronPython. We trap it here so that
 			#IronPython can use logging.
 			try:
-				fn, lno, func, code, cc, sinfo = self.findCaller(inc_stack_info)
+				fn, lno, func, code, cc, sinfo = self.findCaller()
 			except ValueError:
 				fn, lno, func, code, cc, sinfo = "(unknown file)", 0, "(unknown function)", "(code not available)", [], None
 		else:
@@ -249,15 +249,12 @@ class Lggr():
 		""" Log a message at every known log level """
 		self.multi(ALL, msg, args, **kwargs)
 	
-	def findCaller(self, stack_info=False):
+	def findCaller(self):
 		"""
 		Find the stack frame of the caller so that we can note the source
 		file name, line number, and function name
 		"""
 		rv = ("(unknown file)", 0, "(unknown function)", "(code not available)", [], None)
-		if not stack_info:
-			return rv
-
 		f = inspect.currentframe()
 		while hasattr(f, "f_code"):
 			co = f.f_code
