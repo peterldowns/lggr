@@ -180,9 +180,7 @@ class Lggr():
 					procname = mp.curent_process().name
 				except StandardError:
 					pass
-		log_record.update({
-			"processname" : procname
-		})
+		log_record["processname"] = procname
 
 		return log_record
 
@@ -256,21 +254,22 @@ class Lggr():
 		Find the stack frame of the caller so that we can note the source
 		file name, line number, and function name
 		"""
-		f = inspect.currentframe()
 		rv = ("(unknown file)", 0, "(unknown function)", "(code not available)", [], None)
+		if not stack_info:
+			return rv
+
+		f = inspect.currentframe()
 		while hasattr(f, "f_code"):
 			co = f.f_code
 			filename = os.path.normcase(co.co_filename)
 			if filename == _srcfile:
 				f = f.f_back # get out of this logging file
 				continue
-			sinfo = None
-			if stack_info:
-				sinfo = traceback.extract_stack(f)
-				fname, lno, fnc, cc, i = inspect.getframeinfo(f, context=10)
-				cc[i] = ">" + cc[i] # mark the exact line
-				code = cc[i]
-				rv = (fname, lno, fnc, code, cc, sinfo)
+			sinfo = traceback.extract_stack(f)
+			fname, lno, fnc, cc, i = inspect.getframeinfo(f, context=10)
+			cc[i] = ">" + cc[i] # mark the exact line
+			code = cc[i]
+			rv = (fname, lno, fnc, code, cc, sinfo)
 			break
 		return rv
 
