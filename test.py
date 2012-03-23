@@ -1,15 +1,15 @@
 import lggr
+use_gmail = False
 
-d = lggr.Lggr() # create a logger object
-
+d = lggr.Lggr()
 d.add(lggr.ALL, lggr.FilePrinter("~/output.log"))
 d.add(lggr.ALL, lggr.StderrPrinter())
 d.add(lggr.ALL, lggr.Printer())
-try:
-	d.add(lggr.CRITICAL, lggr.Emailer(["peter.l.downs@gmail.com"], "peter"))
-except Exception as e:
-	print e
-	print "Could not create emailer :/"
+
+if use_gmail:
+	g_user = raw_input("Gmail address ('user@gmail.com', not 'user'): ")
+	g_pass = raw_input("Gmail password: ")
+	d.add(lggr.CRITICAL, lggr.GMailer([g_user], g_user, g_pass))
 
 for level in lggr.ALL:
 	print "Level {}:".format(level)

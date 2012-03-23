@@ -321,7 +321,39 @@ def Emailer(recipients, sender=None):
 			logstr = (yield)
 			try:
 				smtp.sendmail(sender, recipients, logstr)
-			except smtplib.SMTPExcpetion:
+			except smtplib.SMTPException:
 				pass
 	except GeneratorExit:
 		smtp.quit()
+
+@Coroutine
+def GMailer(recipients, username, password, subject="Log message from lggr.py"):
+	""" Sends messages as emails to the given list
+		of recipients, from a GMail account. """
+	
+
+	srvr = smtplib.SMTP("smtp.gmail.com", 587)
+	srvr.ehlo()
+	srvr.starttls()
+	srvr.ehlo()
+	srvr.login(username, password)
+
+	if not (isinstance(recipients, list) or isinstance(recipients, tuple)):
+		recipients = [recipients]
+	
+	gmail_sender = "{}@gmail.com".format(username)
+
+	msg = 'To: {}\nFrom: '+gmail_sender+'\nSubject: '+subject+'\n'
+	msg = msg + '\n{}\n\n'
+
+	try:
+		while True:
+			logstr = (yield)
+			for rcp in recipients:
+				message = msg.format(rcp, logstr)
+				try:
+					srvr.sendmail(gmail_sender, rcp, message)
+				except smtplib.SMTPException:
+					pass
+	except GeneratorExit:
+		srvr.quit()
