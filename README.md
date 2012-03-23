@@ -15,7 +15,7 @@ import lggr
 d = lggr.Lggr()
 ```
 
-Add a coroutine (any function or object with `send` and `close` methods) to consume log messages. `lggr` includes some default ones:
+Add a coroutine (or any function or object with `send` and `close` methods) to consume log messages. `lggr` includes some default ones:
 
 * `lggr.Printer()` writes to stdout
 * `lggr.StderrPrinter()` writes to stderr
