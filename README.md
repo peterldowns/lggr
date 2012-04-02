@@ -64,7 +64,7 @@ Anything you want. Log messages are created using `str.format`, so you can reall
 * `logmessage` = the user's formatted message
 * `defaultfmt` = the default format of a log message
 
-If you want to use any extra information, simply pass in a dict with the named argument `extra`:`
+If you want to use any extra information, simply pass in a dict with the named argument `extra`:
 
 ```python
 >>> d.config['defaultfmt'] = '{name} sez: {logmessage}'
