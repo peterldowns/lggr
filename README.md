@@ -71,7 +71,39 @@ If you want to use any extra information, simply pass in a dict with the named a
 >>> d.info("This is the {}", "message", extra={"name":"Peter"})
 Peter sez: This is the message
 ```
+### A `stack_info` example
 
+`stack_info` is cool because it lets you do really helpful tracebacks to where exactly your logging function is being called. For example, with some logger d, I could run the following:
+
+```python
+d.config['defaultfmt'] = '{asctime} ({levelname}) {logmessage}\nIn {pathname}, line {lineno}:\n{codecontext}'
+
+def outer(a):
+	def inner(b):
+		def final(c):
+			d.critical("Easy as {}, {}, {}!", a, b, c)
+		return final
+	return inner
+
+outer(1)(2)(3)
+```
+
+output:
+
+```python
+Mon Apr  2 23:31:22 2012 (CRITICAL) Easy as a, b, c!
+In test.py, line 29:
+d.config['defaultfmt'] = '{asctime} ({levelname}) {logmessage}\nIn {pathname}, line {lineno}:\n{codecontext}'
+
+def outer(a):
+	def inner(b):
+		def final(c):
+>			d.critical("Easy as {}, {}, {}!", a, b, c)
+		return final
+	return inner
+
+outer(1)(2)(3)
+```
 # What's next?
 I'm still working on text-sending and IRC/IM-writing log functions - maybe one of you could help? 
 
