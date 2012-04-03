@@ -31,7 +31,7 @@ d.add(d.ALL, lggr.Printer()) # d.ALL is a shortcut to add a coroutine to all lev
 d.add(d.CRITICAL, lggr.Emailer("peterldowns@gmail.com"))
 ```
 
-3. Do some logging.
+Do some logging.
 
 ```python
 d.info("Hello, world!")
