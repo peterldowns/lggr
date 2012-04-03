@@ -1,0 +1,194 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Lggr by peterldowns</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Lggr</h1>
+<p>Simplified python logging</p>
+        <p class="view"><a href="https://github.com/peterldowns/lggr">View the Project on GitHub <small>peterldowns/lggr</small></a></p>
+        <ul>
+          <li><a href="https://github.com/peterldowns/lggr/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/peterldowns/lggr/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/peterldowns/lggr">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>Lggr - easy python logging</h1>
+
+<p>Have you ever tried to do anything with the python logging module?</p>
+
+<p>I have. I didn't like it at all. The API was very confusing. Instead of dealing with all of its intricacies, I decided to roll my own.</p>
+
+<p>I've been inspired by <a href="http://www.dabeaz.com/">dabeaz</a>'s presentation on coroutines and Kenneth Reitz's <a href="http://python-for-humans.heroku.com/">presentation</a> on better python libraries.</p>
+
+<h1>How does it work?</h1>
+
+<p>Create a logger object.</p>
+
+<div class="highlight">
+<pre><span class="kn">import</span> <span class="nn">lggr</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">lggr</span><span class="o">.</span><span class="n">Lggr</span><span class="p">()</span>
+</pre>
+</div>
+
+
+<p>Add a coroutine (or any function or object with <code>send</code> and <code>close</code> methods) to consume log messages. <code>lggr</code> includes some default ones:</p>
+
+<ul>
+<li>
+<code>lggr.Printer()</code> writes to stdout</li>
+<li>
+<code>lggr.StderrPrinter()</code> writes to stderr</li>
+<li>
+<code>lggr.Printer(filepath)</code> opens a file at <code>filepath</code> and writes to that.</li>
+<li>
+<code>lggr.SocketWriter(host, port)</code> writes to a network socket</li>
+<li>
+<code>lggr.Emailer(recipients)</code> sends emails</li>
+<li>
+<code>lggr.GMailer(recipients, gmail_username, gmail_password, subject="optional")</code> also sends emails, but does it from Gmail which is way sexier than doing it from your own server.</li>
+</ul><p>You can choose to add different coroutines to different levels of logging. Maybe you want to receive emails for all of your critical messages, but only print to stderr for everything else.</p>
+
+<div class="highlight">
+<pre><span class="n">d</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">ALL</span><span class="p">,</span> <span class="n">lggr</span><span class="o">.</span><span class="n">Printer</span><span class="p">())</span> <span class="c"># d.ALL is a shortcut to add a coroutine to all levels</span>
+<span class="n">d</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">,</span> <span class="n">lggr</span><span class="o">.</span><span class="n">Emailer</span><span class="p">(</span><span class="s">"peterldowns@gmail.com"</span><span class="p">))</span>
+</pre>
+</div>
+
+
+<p>Do some logging.</p>
+
+<div class="highlight">
+<pre><span class="n">d</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">"Hello, world!"</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">"Something seems to have gone {desc}"</span><span class="p">,</span> <span class="p">{</span><span class="s">"desc"</span><span class="p">:</span><span class="s">"amuck!"</span><span class="p">})</span>
+<span class="n">d</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s">"Someone {} us {} the {}!"</span><span class="p">,</span> <span class="s">"set"</span><span class="p">,</span> <span class="s">"up"</span><span class="p">,</span> <span class="s">"bomb"</span><span class="p">)</span>
+<span class="n">d</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># stop logging</span>
+</pre>
+</div>
+
+
+<h1>What kind of information can I log?</h1>
+
+<p>Anything you want. Log messages are created using <code>str.format</code>, so you can really create anything you want. The default format includes access to the following variables:</p>
+
+<ul>
+<li>
+<code>levelname</code> = level of logging as a string (<code>"INFO"</code>)</li>
+<li>
+<code>levelno</code> =  level of logging as an integer (<code>0</code>)</li>
+<li>
+<code>pathname</code> = path to the file that the logging function was called from (<code>~/test.py</code>)</li>
+<li>
+<code>filename</code> = filename the logging function was called from (<code>test.py</code>)</li>
+<li>
+<code>module</code> = module the logging function was called from (in this case, <code>None</code>)</li>
+<li>
+<code>exc_info</code> = execution information, either passed in or <code>sys.info()</code>
+</li>
+<li>
+<code>stack_info</code> = stack information, created if the optional <code>inc_stack_info</code> argument is <code>True</code> (it defaults to <code>False</code> if not explicitly passed) or the logging function is called with instance functions <code>critical</code>, <code>debug</code>, or <code>error</code>.</li>
+<li>
+<code>lineno</code> = the line number</li>
+<li>
+<code>funcname</code> = the function name </li>
+<li>
+<code>code</code> = the exact code that called the logging function</li>
+<li>
+<code>codecontext</code> = surrounding 10 lines surrounding <code>code</code>
+</li>
+<li>
+<code>process</code> = current process id</li>
+<li>
+<code>processname</code> = name of the current process, if <code>multiprocessing</code> is available</li>
+<li>
+<code>asctime</code> = time as a string (from <code>time.asctime()</code>)</li>
+<li>
+<code>time</code> = time as seconds from epoch (from <code>time.time()</code>)</li>
+<li>
+<code>threadid</code> = the thread id, if the <code>threading</code> module is available</li>
+<li>
+<code>threadname</code> = the thread name, if the <code>threading</code> module is available</li>
+<li>
+<code>messagefmt</code> = the format string to be used to create the log message</li>
+<li>
+<code>logmessage</code> = the user's formatted message</li>
+<li>
+<code>defaultfmt</code> = the default format of a log message</li>
+</ul><p>If you want to use any extra information, simply pass in a dict with the named argument <code>extra</code>:</p>
+
+<div class="highlight">
+<pre><span class="o">&gt;&gt;&gt;</span> <span class="n">d</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">'defaultfmt'</span><span class="p">]</span> <span class="o">=</span> <span class="s">'{name} sez: {logmessage}'</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">d</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">"This is the {}"</span><span class="p">,</span> <span class="s">"message"</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s">"name"</span><span class="p">:</span><span class="s">"Peter"</span><span class="p">})</span>
+<span class="n">Peter</span> <span class="n">sez</span><span class="p">:</span> <span class="n">This</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">message</span>
+</pre>
+</div>
+
+
+<h3>A <code>stack_info</code> example</h3>
+
+<p><code>stack_info</code> is cool because it lets you do really helpful tracebacks to where exactly your logging function is being called. For example, with some logger d, I could run the following:</p>
+
+<div class="highlight">
+<pre><span class="n">d</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">'defaultfmt'</span><span class="p">]</span> <span class="o">=</span> <span class="s">'{asctime} ({levelname}) {logmessage}</span><span class="se">\n</span><span class="s">In {pathname}, line {lineno}:</span><span class="se">\n</span><span class="s">{codecontext}'</span>
+
+<span class="k">def</span> <span class="nf">outer</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">final</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s">"Easy as {}, {}, {}!"</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">final</span>
+    <span class="k">return</span> <span class="n">inner</span>
+
+<span class="n">outer</span><span class="p">(</span><span class="mi">1</span><span class="p">)(</span><span class="mi">2</span><span class="p">)(</span><span class="mi">3</span><span class="p">)</span>
+</pre>
+</div>
+
+
+<p>output:</p>
+
+<div class="highlight">
+<pre><span class="n">Mon</span> <span class="n">Apr</span>  <span class="mi">2</span> <span class="mi">23</span><span class="p">:</span><span class="mi">31</span><span class="p">:</span><span class="mi">22</span> <span class="mi">2012</span> <span class="p">(</span><span class="n">CRITICAL</span><span class="p">)</span> <span class="n">Easy</span> <span class="k">as</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="err">!</span>
+<span class="n">In</span> <span class="n">test</span><span class="o">.</span><span class="n">py</span><span class="p">,</span> <span class="n">line</span> <span class="mi">29</span><span class="p">:</span>
+<span class="n">d</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">'defaultfmt'</span><span class="p">]</span> <span class="o">=</span> <span class="s">'{asctime} ({levelname}) {logmessage}</span><span class="se">\n</span><span class="s">In {pathname}, line {lineno}:</span><span class="se">\n</span><span class="s">{codecontext}'</span>
+
+<span class="k">def</span> <span class="nf">outer</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">final</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+<span class="o">&gt;</span>           <span class="n">d</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s">"Easy as {}, {}, {}!"</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">final</span>
+    <span class="k">return</span> <span class="n">inner</span>
+
+<span class="n">outer</span><span class="p">(</span><span class="mi">1</span><span class="p">)(</span><span class="mi">2</span><span class="p">)(</span><span class="mi">3</span><span class="p">)</span>
+</pre>
+</div>
+
+
+<h1>What's next?</h1>
+
+<p>I'm still working on text-sending and IRC/IM-writing log functions - maybe one of you could help? </p>
+
+<h1>Who did this?
+
+</h1><p><a href="http://peterdowns.com">Peter Downs.</a><br><a href="mailto:peterldowns@gmail.com">peterldowns@gmail.com</a><br><a href="http://twitter.com/peterldowns">@peterldowns</a></p>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/peterldowns">peterldowns</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
