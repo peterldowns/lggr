@@ -17,7 +17,7 @@ INFO = 'INFO'
 WARNING = 'WARNING'
 ERROR = 'ERROR'
 CRITICAL = 'CRITICAL'
-ALL = [DEBUG, INFO, WARNING, ERROR, CRITICAL] # shortcut
+ALL = (DEBUG, INFO, WARNING, ERROR, CRITICAL) # shortcut
 
 # Allow function, module, sourcecode information
 # ripped from http://hg.python.org/cpython/file/74fa415dc715/Lib/logging/__init__.py#l81
@@ -79,9 +79,9 @@ class Lggr():
         self.disable()
     
     def add(self, levels, logger):
-        """ Given a list of logging levels, add a logger
-            instance to each. """
-        if isinstance(levels, list):
+        """ Given a list or tuple of logging levels,
+            add a logger instance to each. """
+        if isinstance(levels, (list, tuple)):
             for lvl in levels:
                 self.config[lvl].add(logger)
         else:
