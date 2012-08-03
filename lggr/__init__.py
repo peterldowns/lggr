@@ -41,8 +41,8 @@ class Lggr():
     """ Simplified logging. Dispatches messages to any type of
         logging function you want to write, all it has to support
         is send() and close(). """
-    def __init__(self, defaultfmt='{asctime} ({levelname}) {logmessage}'):
-        self.defaultfmt = defaultfmt
+    def __init__(self, defaultfmt=None, keep_history=False, suppress_errors=True):
+        self.defaultfmt = defaultfmt or '{asctime} ({levelname}) {logmessage}'
         self.config = {
                 CRITICAL: set(), # these are different levels of logger functions
                 ERROR: set(),
@@ -53,7 +53,9 @@ class Lggr():
             }
         self.history = []
         self.enabled = True
-        
+        self.keep_history = keep_history
+        self.suppress_errors = suppress_errors
+
         # allow instance.LEVEL instead of lggr.LEVEL
         self.ALL = ALL 
         self.DEBUG = DEBUG
@@ -61,23 +63,22 @@ class Lggr():
         self.WARNING = WARNING
         self.ERROR = ERROR
         self.CRITICAL = CRITICAL
-    
 
     def disable(self):
         """ Turn off logging. """
         self.enabled = False
-    
+
     def enable(self):
         """ Turn on logging. Enabled by default. """
         self.enabled = True
-    
+
     def close(self):
         """ Stop and remove all logging functions
             and disable this logger. """
         for level in ALL:
             self.clear(level)
         self.disable()
-    
+
     def add(self, levels, logger):
         """ Given a list or tuple of logging levels,
             add a logger instance to each. """
@@ -86,23 +87,23 @@ class Lggr():
                 self.config[lvl].add(logger)
         else:
             self.config[levels].add(logger)
-    
+
     def remove(self, level, logger):
         """ Given a level, remove a given logger function
             if it is a member of that level, closing the logger
             function either way."""
         self.config[level].discard(logger)
         logger.close()
-    
+
     def clear(self, level):
         """ Remove all logger functions from a given level. """
         for item in self.config[level]:
             item.close()
         self.config[level].clear()
-    
+
     def makeRecord(self, level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc):
         """ Create a 'record' (a dictionary) with information to be logged. """
-        
+
         sinfo = None
         if _srcfile and inc_stack_info:
             #IronPython doesn't track Python frames, so findCaller throws an
@@ -124,7 +125,7 @@ class Lggr():
         if not exc_info or not isinstance(exc_info, tuple):
             # Allow passed in exc_info, but supply it if it isn't
             exc_info = sys.exc_info()
-        
+
         log_record = { # This is available information for logging functions.
             #TODO:  proc_name, thread_name
             # see http://hg.python.org/cpython/file/74fa415dc715/Lib/logging/__init__.py#l279
@@ -187,7 +188,7 @@ class Lggr():
 
         return log_record
 
-    def log(self, level, fmt, args=None, extra=None, exc_info=None, inc_stack_info=False, inc_multi_proc=False):
+    def _log(self, level, fmt, args=None, extra=None, exc_info=None, inc_stack_info=False, inc_multi_proc=False):
         """ Send a log message to all of the logging functions
             for a given level as well as adding the
             message to this logger instance's history. """
@@ -197,9 +198,10 @@ class Lggr():
         log_record = self.makeRecord(level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc)
 
         logstr = log_record['defaultfmt'].format(**log_record) #whoah.
-        
-        self.history.append(logstr)
-        
+
+        if self.keep_history:
+            self.history.append(logstr)
+
         log_funcs = self.config[level]
         to_remove = []
         for lf in log_funcs:
@@ -211,11 +213,19 @@ class Lggr():
             self.remove(level, lf)
             self.info('Logging function {} removed from level {}', lf, level)
 
+    def log(self, *args, **kwargs):
+        """ Do logging, but handle error suppression. """
+        if self.suppress_errors:
+            try: self._log(*args, **kwargs)
+            except: pass
+        else:
+            self._log(*args, **kwargs)
+
 #debug, info, warning, error, critical
     def info(self, msg, *args, **kwargs):
         """' Log a message with INFO level """   
         self.log(INFO, msg, args, **kwargs)
-    
+
     def warning(self, msg, *args, **kwargs):
         """ Log a message with WARNING level """
         self.log(WARNING, msg, args, **kwargs)
@@ -242,7 +252,7 @@ class Lggr():
         kwargs.setdefault('inc_stack_info', True)
         kwargs.setdefault('inc_multi_proc', True)
         self.log(CRITICAL, msg, args, **kwargs)
-        
+
     def multi(self, lvl_list, msg, *args, **kwargs):
         """ Log a message at multiple levels"""
         for level in lvl_list:
@@ -251,7 +261,7 @@ class Lggr():
     def all(self, msg, *args, **kwargs):
         """ Log a message at every known log level """
         self.multi(ALL, msg, args, **kwargs)
-    
+
     def findCaller(self):
         """
         Find the stack frame of the caller so that we can note the source
