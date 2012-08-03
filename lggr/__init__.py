@@ -2,14 +2,12 @@
 TODO: add a docstring.
 """
 
-from coroutine import Coroutine
-from coroutine import CoroutineProcess
-from coroutine import CoroutineThread
 import traceback
 import inspect
 import time
 import sys
 import os
+from lggr.coroutine import Coroutine, CoroutineProcess, CoroutineThread
 
 __version__ = '0.1.0'
 
