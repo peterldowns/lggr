@@ -109,10 +109,20 @@ def outer(a):
 
 outer(1)(2)(3)
 ```
+
+# Is it robust?
+
+Not *yet*. It's definitely still in the early days, so use at your own risk. I wouldn't put this into production right now, but it's been working fine for my toy projects. Please submit any bugs you find to the github tracker!
+
+Also, for the risk-averse, it ignores all errors when calling the `.log(...)` method. So if you seriously mess up, the worst thing that can happen is that you won't see a log message. For the less risk-averse, this can be overridden when the `Lggr` object is created. 
+
 # What's next?
 I'm still working on text-sending and IRC/IM-writing log functions - maybe one of you could help? 
 
 Also, I've sort of ignored the Unicode problem entirely. That needs to change.
+
+I'd also like to add serialization / loading of both `Lggr` objects and their configurations, for easier saving / loading.
+
 
 # Who did this?
 [Peter Downs.](http://peterdowns.com)  
