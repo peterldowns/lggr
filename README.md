@@ -6,6 +6,11 @@ I have. I didn't like it at all. The API was very confusing. Instead of dealing 
 
 I've been inspired by [dabeaz](http://www.dabeaz.com/)'s presentation on coroutines and Kenneth Reitz's [presentation](http://python-for-humans.heroku.com/) on better python libraries.
 
+# Install
+```bash
+pip install lggr
+```
+
 # How does it work?
 
 Create a logger object.
@@ -106,6 +111,8 @@ outer(1)(2)(3)
 ```
 # What's next?
 I'm still working on text-sending and IRC/IM-writing log functions - maybe one of you could help? 
+
+Also, I've sort of ignored the Unicode problem entirely. That needs to change.
 
 # Who did this?
 [Peter Downs.](http://peterdowns.com)  
