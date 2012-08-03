@@ -1,4 +1,4 @@
-# Lggr - easy python logging
+# Lggr - Python Logging For Humans
 
 Have you ever tried to do anything with the python logging module?
 
