@@ -1,7 +1,9 @@
 # coding: utf-8
+import sys
+import time
+import Queue
+import threading
 import multiprocessing
-import Queue, threading
-import sys, time
 
 class CoroutineProcess(multiprocessing.Process):
 	""" Will run a coroutine in its own process, using the
