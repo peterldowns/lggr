@@ -1,3 +1,4 @@
+# coding: utf-8
 import multiprocessing
 import Queue, threading
 import sys, time
