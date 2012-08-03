@@ -7,7 +7,7 @@ setup(
     author = 'Peter Downs',
     author_email = 'peterldowns@gmail.com',
     url = 'https://github.com/peterldowns/lggr',
-    download_url = 'https://github.com/peterldowns/lggr/tarball/v0.1.0',
+    download_url = 'https://github.com/peterldowns/lggr/tarball/v0.1.1',
     keywords = ['logging', 'log', 'coroutine'],
     classifiers = [
         'Programming Language :: Python',
