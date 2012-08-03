@@ -103,13 +103,6 @@ class Lggr():
     def makeRecord(self, level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc):
         """ Create a 'record' (a dictionary) with information to be logged. """
         
-        args_dict=False
-        if args and len(args) == 1 and isinstance(args[0], dict) and args[0]:
-            # args can be a list of unnamed variables or a dict of named variables
-            # to be used with str.format()
-            args = args[0]
-            args_dict=True
-        
         sinfo = None
         if _srcfile and inc_stack_info:
             #IronPython doesn't track Python frames, so findCaller throws an
@@ -160,11 +153,14 @@ class Lggr():
             'defaultfmt' : self.config['defaultfmt']
         }
         # If the user passed a single dict, use that with format.
-        # Otherwise, format using the passed args
-        if args_dict:
-            log_record['logmessage'] = fmt.format(**args)
-        else:
-            log_record['logmessage'] = fmt.format(*args)
+        # If we're passed a tuple or list, dereference its contents
+        # as args to format, too. Otherwise, leave the log message
+        # as None.
+        if args and isinstance(args, (tuple, list)):
+            if len(args) == 1 and isinstance(args[0], dict):
+                log_record['logmessage'] = fmt.format(**args[0])
+            else:
+                log_record['logmessage'] = fmt.format(*args)
 
         if extra:
             log_record.update(extra) # add custom variables to record
