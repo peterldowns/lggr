@@ -156,11 +156,13 @@ class Lggr():
         # If we're passed a tuple or list, dereference its contents
         # as args to format, too. Otherwise, leave the log message
         # as None.
-        if args and isinstance(args, (tuple, list)):
-            if len(args) == 1 and isinstance(args[0], dict):
+        if args:
+            if isinstance(args, (tuple, list)) and len(args) == 1 and isinstance(args[0], dict):
                 log_record['logmessage'] = fmt.format(**args[0])
             else:
                 log_record['logmessage'] = fmt.format(*args)
+        else:
+            log_record['logmessage'] = fmt
 
         if extra:
             log_record.update(extra) # add custom variables to record
