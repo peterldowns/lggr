@@ -216,10 +216,14 @@ class Lggr():
     def log(self, *args, **kwargs):
         """ Do logging, but handle error suppression. """
         if self.suppress_errors:
-            try: self._log(*args, **kwargs)
-            except: pass
+            try:
+                self._log(*args, **kwargs)
+                return True
+            except:
+                return False
         else:
             self._log(*args, **kwargs)
+            return True
 
 #debug, info, warning, error, critical
     def info(self, msg, *args, **kwargs):
