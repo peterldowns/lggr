@@ -362,3 +362,4 @@ def GMailer(recipients, username, password, subject='Log message from lggr.py'):
                     pass
     except GeneratorExit:
         srvr.quit()
+

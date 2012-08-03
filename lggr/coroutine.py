@@ -131,3 +131,4 @@ if __name__ == '__main__':
         broadcast([1, 2, 3], coroutines)
     except StopIteration:
         print 'After being closed, normal coroutines do not accept any more items'
+
