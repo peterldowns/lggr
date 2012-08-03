@@ -17,5 +17,4 @@ setup(
         'Topic :: System :: Logging',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    long_description = open('README.md').read(),
 )
