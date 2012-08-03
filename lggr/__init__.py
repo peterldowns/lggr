@@ -1,3 +1,7 @@
+"""
+TODO: add a docstring.
+"""
+
 from coroutine import Coroutine
 from coroutine import CoroutineProcess
 from coroutine import CoroutineThread
@@ -6,6 +10,8 @@ import inspect
 import time
 import sys
 import os
+
+__version__ = '0.1.0'
 
 DEBUG = "DEBUG"
 INFO = "INFO"
