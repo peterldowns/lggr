@@ -76,6 +76,13 @@ If you want to use any extra information, simply pass in a dict with the named a
 >>> d.info("This is the {}", "message", extra={"name":"Peter"})
 Peter sez: This is the message
 ```
+
+Something to be careful about: internally, lggr uses the older (2.0+) python format
+syntax to be compatible with older versions. As of 2.7, you can call `'{} {} {}'.format(1, 2, 3)`,
+but this will break for earlier versions. When making calls to lggr, make sure that you use the
+correct syntax for your version of Python. If your program will run on multiple different versions,
+then it would probably best to use the older style (`'{0} {1} {2}'.format(1, 2, 3)`).
+
 ### A `stack_info` example
 
 `stack_info` is cool because it lets you do really helpful tracebacks to where exactly your logging function is being called. For example, with some logger d, I could run the following:
