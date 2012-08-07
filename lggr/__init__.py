@@ -331,7 +331,7 @@ def Emailer(recipients, sender=None):
         of recipients. """
     hostname = socket.gethostname()
     if not sender:
-        sender = 'lggr@{}'.format(hostname)
+        sender = 'lggr@{0}'.format(hostname)
     smtp = smtplib.SMTP('localhost')
     try:
         while True:
@@ -358,10 +358,10 @@ def GMailer(recipients, username, password, subject='Log message from lggr.py'):
     if not (isinstance(recipients, list) or isinstance(recipients, tuple)):
         recipients = [recipients]
     
-    gmail_sender = '{}@gmail.com'.format(username)
+    gmail_sender = '{0}@gmail.com'.format(username)
 
-    msg = 'To: {}\nFrom: '+gmail_sender+'\nSubject: '+subject+'\n'
-    msg = msg + '\n{}\n\n'
+    msg = 'To: {0}\nFrom: '+gmail_sender+'\nSubject: '+subject+'\n'
+    msg = msg + '\n{1}\n\n'
 
     try:
         while True:
