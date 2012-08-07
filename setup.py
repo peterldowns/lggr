@@ -2,12 +2,12 @@ from distutils.core import setup
 setup(
     name = 'lggr',
     packages = ['lggr'],
-    version = '0.1.2',
+    version = '0.1.3',
     description = 'Python Logging For Humans',
     author = 'Peter Downs',
     author_email = 'peterldowns@gmail.com',
     url = 'https://github.com/peterldowns/lggr',
-    download_url = 'https://github.com/peterldowns/lggr/tarball/v0.1.2',
+    download_url = 'https://github.com/peterldowns/lggr/tarball/v0.1.3',
     keywords = ['logging', 'log', 'coroutine'],
     classifiers = [
         'Programming Language :: Python',
