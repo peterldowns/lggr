@@ -19,8 +19,6 @@ ERROR = 'ERROR'
 CRITICAL = 'CRITICAL'
 ALL = (DEBUG, INFO, WARNING, ERROR, CRITICAL) # shortcut
 
-# Allow function, module, sourcecode information
-# ripped from http://hg.python.org/cpython/file/74fa415dc715/Lib/logging/__init__.py#l81
 if hasattr(sys, 'frozen'): #support for py2exe
     _srcfile = 'lggr%s__init%s' % (os.sep, __file[-4:])
 else:
@@ -280,7 +278,13 @@ class Lggr():
             print '------'
             co = f.f_code
             filename = os.path.normcase(co.co_filename)
-            if os.path.abspath(filename) == os.path.abspath(_srcfile):
+            # When lggr is imported as a module, the `_src_file`
+            # filename ends in '.pyc', while the filename grabbed
+            # from inspect will end in '.py'. We use splitext here
+            # to compare absolute paths without the extension, which
+            # restores the intended behavior of dropping down the callstack
+            # until we reach the first file not part of this library.
+            if os.path.splitext(filename)[0] == os.path.splitext(_srcfile)[0]:
                 f = f.f_back # get out of this logging file
                 continue
             sinfo = traceback.extract_stack(f)
