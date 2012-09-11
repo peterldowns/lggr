@@ -3,6 +3,8 @@
 TODO: add a docstring.
 """
 
+print 'Hello'
+
 import os
 import sys
 import time
@@ -26,6 +28,7 @@ if hasattr(sys, 'frozen'): #support for py2exe
 else:
     _srcfile = __file__
 _srcfile = os.path.normcase(_srcfile)
+print 'srcfile=', _srcfile
 
 # 
 try:
@@ -276,7 +279,8 @@ class Lggr():
         while hasattr(f, 'f_code'):
             co = f.f_code
             filename = os.path.normcase(co.co_filename)
-            if filename == _srcfile:
+            print filename, '?', _srcfile, '(->', f.f_back.f_code.co_filename, ')'
+            if os.path.splitext(filename)[0] == os.path.splitext(_srcfile)[0]: # ignore extension
                 f = f.f_back # get out of this logging file
                 continue
             sinfo = traceback.extract_stack(f)
@@ -285,6 +289,7 @@ class Lggr():
             code = cc[i]
             rv = (fname, lno, fnc, code, cc, sinfo)
             break
+        print '\n!!!', f.f_code.co_filename, '!!!\n'
         return rv
 
 @Coroutine
