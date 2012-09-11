@@ -272,10 +272,6 @@ class Lggr():
         rv = ('(unknown file)', 0, '(unknown function)', '(code not available)', [], None)
         f = inspect.currentframe()
         while hasattr(f, 'f_code'):
-            print '\n'
-            print os.path.splitext(f.f_code.co_filename)[0], '?'
-            print os.path.splitext(_srcfile)[0]
-            print '------'
             co = f.f_code
             filename = os.path.normcase(co.co_filename)
             # When lggr is imported as a module, the `_src_file`
