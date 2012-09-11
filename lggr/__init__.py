@@ -285,8 +285,10 @@ class Lggr():
                 continue
             sinfo = traceback.extract_stack(f)
             fname, lno, fnc, cc, i = inspect.getframeinfo(f, context=10)
-            cc[i] = '>' + cc[i] # mark the exact line
-            code = cc[i]
+            
+            # Mark the calling line with a >
+            cc = map(lambda c: ('> ' if c[0] == i else '| ') + c[1], enumerate(cc))
+            code = '>' + cc[i]
             rv = (fname, lno, fnc, code, cc, sinfo)
             break
         return rv
