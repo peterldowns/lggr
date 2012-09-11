@@ -101,16 +101,16 @@ class Lggr():
             item.close()
         self.config[level].clear()
 
-    def make_record(self, level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc):
+    def _make_record(self, level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc):
         """ Create a 'record' (a dictionary) with information to be logged. """
 
         sinfo = None
         if _srcfile and inc_stack_info:
-            #IronPython doesn't track Python frames, so find_caller throws an
+            #IronPython doesn't track Python frames, so _find_caller throws an
             #exception on some versionf of IronPython. We trap it here so that
             #IronPython can use logging.
             try:
-                fn, lno, func, code, cc, sinfo = self.find_caller()
+                fn, lno, func, code, cc, sinfo = self._find_caller()
             except ValueError:
                 fn, lno, func, code, cc, sinfo = '(unknown file)', 0, '(unknown function)', '(code not available)', [], None
         else:
@@ -195,7 +195,7 @@ class Lggr():
         if not self.enabled:
             return # Fail silently so that logging can easily be removed
 
-        log_record = self.make_record(level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc)
+        log_record = self._make_record(level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc)
 
         logstr = log_record['defaultfmt'].format(**log_record) #whoah.
 
@@ -266,7 +266,7 @@ class Lggr():
         """ Log a message at every known log level """
         self.multi(ALL, msg, args, **kwargs)
 
-    def find_caller(self):
+    def _find_caller(self):
         """
         Find the stack frame of the caller so that we can note the source
         file name, line number, and function name
