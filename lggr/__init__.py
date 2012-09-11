@@ -3,8 +3,6 @@
 TODO: add a docstring.
 """
 
-print 'Hello'
-
 import os
 import sys
 import time
@@ -24,11 +22,10 @@ ALL = (DEBUG, INFO, WARNING, ERROR, CRITICAL) # shortcut
 # Allow function, module, sourcecode information
 # ripped from http://hg.python.org/cpython/file/74fa415dc715/Lib/logging/__init__.py#l81
 if hasattr(sys, 'frozen'): #support for py2exe
-    _srcfile = 'logging%s__init%s' % (os.sep, __file[-4:])
+    _srcfile = 'lggr%s__init%s' % (os.sep, __file[-4:])
 else:
     _srcfile = __file__
 _srcfile = os.path.normcase(_srcfile)
-print 'srcfile=', _srcfile
 
 # 
 try:
@@ -277,10 +274,13 @@ class Lggr():
         rv = ('(unknown file)', 0, '(unknown function)', '(code not available)', [], None)
         f = inspect.currentframe()
         while hasattr(f, 'f_code'):
+            print '\n'
+            print os.path.abspath(f.f_code.co_filename), '?'
+            print os.path.abspath(_srcfile)
+            print '------'
             co = f.f_code
             filename = os.path.normcase(co.co_filename)
-            print filename, '?', _srcfile, '(->', f.f_back.f_code.co_filename, ')'
-            if os.path.splitext(filename)[0] == os.path.splitext(_srcfile)[0]: # ignore extension
+            if os.path.abspath(filename) == os.path.abspath(_srcfile):
                 f = f.f_back # get out of this logging file
                 continue
             sinfo = traceback.extract_stack(f)
@@ -289,7 +289,6 @@ class Lggr():
             code = cc[i]
             rv = (fname, lno, fnc, code, cc, sinfo)
             break
-        print '\n!!!', f.f_code.co_filename, '!!!\n'
         return rv
 
 @Coroutine
