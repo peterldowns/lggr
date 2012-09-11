@@ -275,8 +275,8 @@ class Lggr():
         f = inspect.currentframe()
         while hasattr(f, 'f_code'):
             print '\n'
-            print os.path.abspath(f.f_code.co_filename), '?'
-            print os.path.abspath(_srcfile)
+            print os.path.splitext(f.f_code.co_filename)[0], '?'
+            print os.path.splitext(_srcfile)[0]
             print '------'
             co = f.f_code
             filename = os.path.normcase(co.co_filename)
