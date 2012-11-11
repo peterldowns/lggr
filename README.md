@@ -42,7 +42,7 @@ Do some logging.
 d.info("Hello, world!")
 d.warning("Something seems to have gone {desc}", {"desc":"amuck!"})
 d.critical("Someone {} us {} the {}!", "set", "up", "bomb")
-d.close() # stop logging
+d.shutdown() # stop logging
 ```
 
 # What kind of information can I log?

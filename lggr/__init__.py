@@ -70,7 +70,7 @@ class Lggr():
         """ Turn on logging. Enabled by default. """
         self.enabled = True
 
-    def close(self):
+    def shutdown(self):
         """ Stop and remove all logging functions
             and disable this logger. """
         for level in ALL:

@@ -45,5 +45,5 @@ d.clear(lggr.INFO)
 d.info("Testing....")
 d.error("Testing {} {} {}", "another", "stupid", "thing")
 
-d.close()
+d.shutdown()
 d.log(lggr.ALL, "Help?")
