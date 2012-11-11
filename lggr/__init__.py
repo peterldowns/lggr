@@ -99,11 +99,11 @@ class Lggr():
             item.close()
         self.config[level].clear()
 
-    def _make_record(self, level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc):
+    def _make_record(self, level, fmt, args, extra, exc_info, inc_stackinfo, inc_multiproc):
         """ Create a 'record' (a dictionary) with information to be logged. """
 
         sinfo = None
-        if _srcfile and inc_stack_info:
+        if _srcfile and inc_stackinfo:
             #IronPython doesn't track Python frames, so _find_caller throws an
             #exception on some versionf of IronPython. We trap it here so that
             #IronPython can use logging.
@@ -173,7 +173,7 @@ class Lggr():
                 'threadname' : curthread.name
             })
 
-        if not inc_multi_proc: # check to use multiprocessing
+        if not inc_multiproc: # check to use multiprocessing
             procname = None
         else:
             procname = 'MainProcess'
@@ -186,14 +186,14 @@ class Lggr():
 
         return log_record
 
-    def _log(self, level, fmt, args=None, extra=None, exc_info=None, inc_stack_info=False, inc_multi_proc=False):
+    def _log(self, level, fmt, args=None, extra=None, exc_info=None, inc_stackinfo=False, inc_multiproc=False):
         """ Send a log message to all of the logging functions
             for a given level as well as adding the
             message to this logger instance's history. """
         if not self.enabled:
             return # Fail silently so that logging can easily be removed
 
-        log_record = self._make_record(level, fmt, args, extra, exc_info, inc_stack_info, inc_multi_proc)
+        log_record = self._make_record(level, fmt, args, extra, exc_info, inc_stackinfo, inc_multiproc)
 
         logstr = log_record['defaultfmt'].format(**log_record) #whoah.
 
@@ -236,23 +236,23 @@ class Lggr():
         """ Log a message with DEBUG level. Automatically
             includes stack info unless it is specifically not
             included. """
-        kwargs.setdefault('inc_stack_info', True)
+        kwargs.setdefault('inc_stackinfo', True)
         self.log(DEBUG, msg, args, **kwargs)
     
     def error(self, msg, *args, **kwargs):
         """ Log a message with ERROR level. Automatically
             includes stack and process info unless they
             are specifically not included. """
-        kwargs.setdefault('inc_stack_info', True)
-        kwargs.setdefault('inc_multi_proc', True)
+        kwargs.setdefault('inc_stackinfo', True)
+        kwargs.setdefault('inc_multiproc', True)
         self.log(ERROR, msg, args, **kwargs)
 
     def critical(self, msg, *args, **kwargs):
         """ Log a message with CRITICAL level. Automatically
             includes stack and process info unless they are
             specifically not included. """
-        kwargs.setdefault('inc_stack_info', True)
-        kwargs.setdefault('inc_multi_proc', True)
+        kwargs.setdefault('inc_stackinfo', True)
+        kwargs.setdefault('inc_multiproc', True)
         self.log(CRITICAL, msg, args, **kwargs)
 
     def multi(self, lvl_list, msg, *args, **kwargs):
