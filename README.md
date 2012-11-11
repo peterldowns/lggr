@@ -17,7 +17,7 @@ Create a logger object.
 
 ```python
 import lggr
-d = lggr.Lggr()
+mylggr = lggr.Lggr()
 ```
 
 Add a [coroutine](http://www.dabeaz.com/coroutines/) (or any function or object with `send` and `close` methods) to consume log messages. `lggr` includes some default ones:
@@ -32,48 +32,48 @@ Add a [coroutine](http://www.dabeaz.com/coroutines/) (or any function or object 
 You can choose to add different coroutines to different levels of logging. Maybe you want to receive emails for all of your critical messages, but only print to stderr for everything else.
 
 ```python
-d.add(d.ALL, lggr.Printer()) # d.ALL is a shortcut to add a coroutine to all levels
-d.add(d.CRITICAL, lggr.Emailer("peterldowns@gmail.com"))
+mylggr.add(mylggr.ALL, lggr.Printer()) # mylggr.ALL is a shortcut to add a coroutine to all levels
+mylggr.add(mylggr.CRITICAL, lggr.Emailer("peterldowns@gmail.com"))
 ```
 
 Do some logging.
 
 ```python
-d.info("Hello, world!")
-d.warning("Something seems to have gone {desc}", {"desc":"amuck!"})
-d.critical("Someone {} us {} the {}!", "set", "up", "bomb")
-d.shutdown() # stop logging
+mylggr.info("Hello, world!")
+mylggr.warning("Something seems to have gone {desc}", {"desc":"amuck!"})
+mylggr.critical("Someone {} us {} the {}!", "set", "up", "bomb")
+mylggr.shutdown() # stop logging
 ```
 
 # What kind of information can I log?
 Anything you want. Log messages are created using `str.format`, so you can really create anything you want. The default format includes access to the following variables:
 
-* `levelname` = level of logging as a string (`"INFO"`)
-* `levelno` =  level of logging as an integer (`0`)
-* `pathname` = path to the file that the logging function was called from (`~/test.py`)
-* `filename` = filename the logging function was called from (`test.py`)
-* `module` = module the logging function was called from (in this case, `None`)
-* `exc_info` = execution information, either passed in or `sys.info()`
-* `stack_info` = stack information, created if the optional `inc_stack_info` argument is `True` (it defaults to `False` if not explicitly passed) or the logging function is called with instance functions `critical`, `debug`, or `error`.
-* `lineno` = the line number
-* `funcname` = the function name 
+* `asctime` = time as a string (from `time.asctime()`)
 * `code` = the exact code that called the logging function
 * `codecontext` = surrounding 10 lines surrounding `code`
+* `defaultfmt` = the default format of a log message
+* `excinfo` = execution information, either passed in or `sys.info()`
+* `filename` = filename the logging function was called from (`test.py`)
+* `funcname` = the function name 
+* `levelname` = level of logging as a string (`"INFO"`)
+* `levelno` =  level of logging as an integer (`0`)
+* `lineno` = the line number
+* `logmessage` = the user's formatted message
+* `messagefmt` = the format string to be used to create the log message
+* `module` = module the logging function was called from (in this case, `None`)
+* `pathname` = path to the file that the logging function was called from (`~/test.py`)
 * `process` = current process id
 * `processname` = name of the current process, if `multiprocessing` is available
-* `asctime` = time as a string (from `time.asctime()`)
-* `time` = time as seconds from epoch (from `time.time()`)
+* `stackinfo` = stack information, created if the optional `inc_stackinfo` argument is `True` (it defaults to `False` if not explicitly passed) or the logging function is called with instance functions `critical`, `debug`, or `error`.
 * `threadid` = the thread id, if the `threading` module is available
 * `threadname` = the thread name, if the `threading` module is available
-* `messagefmt` = the format string to be used to create the log message
-* `logmessage` = the user's formatted message
-* `defaultfmt` = the default format of a log message
+* `time` = time as seconds from epoch (from `time.time()`)
 
 If you want to use any extra information, simply pass in a dict with the named argument `extra`:
 
 ```python
->>> d.config['defaultfmt'] = '{name} sez: {logmessage}'
->>> d.info("This is the {}", "message", extra={"name":"Peter"})
+>>> mylggr.config['defaultfmt'] = '{name} sez: {logmessage}'
+>>> mylggr.info("This is the {}", "message", extra={"name":"Peter"})
 Peter sez: This is the message
 ```
 
@@ -83,17 +83,17 @@ but this will break for earlier versions. When making calls to lggr, make sure t
 correct syntax for your version of Python. If your program will run on multiple different versions,
 then it would probably best to use the older style (`'{0} {1} {2}'.format(1, 2, 3)`).
 
-### A `stack_info` example
+### A `stackinfo` example
 
-`stack_info` is cool because it lets you do really helpful tracebacks to where exactly your logging function is being called. For example, with some logger d, I could run the following:
+`stackinfo` is cool because it lets you do really helpful tracebacks to where exactly your logging function is being called. For example, with some Lggr mylggr, I could run the following:
 
 ```python
-d.config['defaultfmt'] = '{asctime} ({levelname}) {logmessage}\nIn {pathname}, line {lineno}:\n{codecontext}'
+mylggr.config['defaultfmt'] = '{asctime} ({levelname}) {logmessage}\nIn {pathname}, line {lineno}:\n{codecontext}'
 
 def outer(a):
 	def inner(b):
 		def final(c):
-			d.critical("Easy as {}, {}, {}!", a, b, c)
+			mylggr.critical("Easy as {}, {}, {}!", a, b, c)
 		return final
 	return inner
 
@@ -103,18 +103,18 @@ outer(1)(2)(3)
 output:
 
 ```python
-Mon Apr  2 23:31:22 2012 (CRITICAL) Easy as a, b, c!
-In test.py, line 29:
-d.config['defaultfmt'] = '{asctime} ({levelname}) {logmessage}\nIn {pathname}, line {lineno}:\n{codecontext}'
-
-def outer(a):
-	def inner(b):
-		def final(c):
->			d.critical("Easy as {}, {}, {}!", a, b, c)
-		return final
-	return inner
-
-outer(1)(2)(3)
+Sun Nov 11 14:43:38 2012 (CRITICAL) Easy as a, b, c!
+In bin/test.py, line 29:
+| old = mylggr.config['defaultfmt']
+| mylggr.config['defaultfmt'] = '{asctime} ({levelname}) {logmessage}\nIn {pathname}, line {lineno}:\n{codecontext}'
+| def outer(a):
+|   def inner(b):
+|     def final(c):
+>       mylggr.critical("Easy as {}, {}, {}!", a, b, c)
+|     return final
+|   return inner
+| 
+| outer(1)(2)(3)
 ```
 
 # Is it robust?
