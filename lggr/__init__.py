@@ -127,25 +127,25 @@ class Lggr():
         log_record = { # This is available information for logging functions.
             #TODO:  proc_name, thread_name
             # see http://hg.python.org/cpython/file/74fa415dc715/Lib/logging/__init__.py#l279
-            'levelname' : level,
-            'levelno' : ALL.index(level),
-            'pathname' : fn,
-            'filename' : fname,
-            'module' : module,
-            'exc_info' : exc_info,
-            'stack_info' : sinfo,
-            'lineno' : lno,
-            'funcname' : func,
+            'asctime': time.asctime(), # TODO: actual specifier for format
             'code': code,
             'codecontext': ''.join(cc),
+            'excinfo' : exc_info,
+            'filename' : fname,
+            'funcname' : func,
+            'levelname' : level,
+            'levelno' : ALL.index(level),
+            'lineno' : lno,
+            'logmessage' : None,
+            'messagefmt' : fmt,
+            'module' : module,
+            'pathname' : fn,
             'process' : os.getpid(),
             'processname' : None,
-            'asctime': time.asctime(), # TODO: actual specifier for format
-            'time' : time.time(),
+            'stackinfo' : sinfo,
             'threadid' : None,
             'threadname' : None,
-            'messagefmt' : fmt,
-            'logmessage' : None,
+            'time' : time.time(),
             # The custom `extra` information can only be used to format the default
             #   format. The `logmessage` can only be passed a dictionary or a list
             #   (as `args`).
