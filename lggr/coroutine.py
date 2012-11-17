@@ -78,71 +78,11 @@ def Coroutine(func):
         c.next() # prime it for iteration
         return c
     return start
-
-@Coroutine
-def logger(label):
-    """ Prints items with a timestamp. """
-    try:
-        while True:
-            item = (yield)
-            timestamp = '(%s) %s:' % (str(label), time.asctime())
-            print timestamp, item
-    except GeneratorExit: pass
-
-@Coroutine
-def counter():
-    try:
-        count = 0
-        while True:
-            item = (yield)
-            count += 1
-            print 'counter: received item #%d' % count
-    except GeneratorExit: pass
-    
+ 
 def broadcast(source, coroutines):
     """ Sends data from a source to multiple coroutines """
     # send items to multiple coroutines
     for item in source:
         for c in coroutines:
             c.send(item)
-
-if __name__ == '__main__':
-    def start(x):
-        x.start()
-    def close(x):
-        x.close()
-    
-    print '##### CoroutineProcesses #####'
-    processes = map(CoroutineProcess, [logger('process_logger'), counter()])
-    map(start, processes) # start the coroutines running in their own processes
-    broadcast(xrange(2), processes)
-    map(close, processes) # stop the coroutines
-    try:
-        broadcast([1, 2, 3], processes)
-    except StopIteration:
-        print '\nThe CoroutineProcesses are now closed and do not accept any more items'
-        print '(just like normal coroutines!)'
-
-
-    print '\n##### CoroutineThreads #####'
-    threads = map(CoroutineThread, [logger('thread_logger'), counter()])
-    map(start, threads) # start the coroutines in their own threads
-    broadcast(xrange(2), threads)
-    map(close, threads)
-    try:
-        broadcast([1, 2, 3], threads)
-    except StopIteration:
-        print 'The CoroutineThreads are now closed and do not accept any more items'
-        print '(just like normal coroutines!)'
-
-
-    print '\n##### coroutines #####'
-    coroutines = [logger('normal_logger'), counter()]
-    # don't need to `start` a normal coroutine
-    broadcast(xrange(2), coroutines)
-    map(close, coroutines)
-    try:
-        broadcast([1, 2, 3], coroutines)
-    except StopIteration:
-        print 'After being closed, normal coroutines do not accept any more items'
 
