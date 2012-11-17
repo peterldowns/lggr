@@ -293,7 +293,7 @@ class Lggr():
             break
         return rv
 
-@Coroutine
+@CoroutineProcess
 def Printer(open_file=sys.stdout, closing=False):
     """ Prints items with a timestamp. """
     try:
@@ -317,7 +317,7 @@ def FilePrinter(filename, mode='a', closing=True):
     return Printer(f, closing)
 
 import socket
-@Coroutine
+@CoroutineProcess
 def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
     """ Writes messages to a socket/host. """
     message = '({0}): {1}'
@@ -331,7 +331,7 @@ def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
         s.close()
 
 import smtplib
-@Coroutine
+@CoroutineProcess
 def Emailer(recipients, sender=None):
     """ Sends messages as emails to the given list
         of recipients. """
@@ -349,12 +349,10 @@ def Emailer(recipients, sender=None):
     except GeneratorExit:
         smtp.quit()
 
-@Coroutine
+@CoroutineProcess
 def GMailer(recipients, username, password, subject='Log message from lggr.py'):
     """ Sends messages as emails to the given list
         of recipients, from a GMail account. """
-    
-
     srvr = smtplib.SMTP('smtp.gmail.com', 587)
     srvr.ehlo()
     srvr.starttls()
