@@ -28,7 +28,6 @@ class CoroutineProcess(multiprocessing.Process):
         # Prime the wrapped coroutine.
         self.processor = self.processor(*args, **kwargs)
         self.processor.next()
-        # Spawn a new process running the wrapped coroutine.
         self.start()
         return self
 
@@ -71,18 +70,20 @@ class CoroutineThread(threading.Thread):
     def close(self):
         self.shutdown.set()
 
-def Coroutine(func):
+def coroutine_process(func):
+    def wrapper(*args, **kwargs):
+        cp = CoroutineProcess(func)
+        cp = cp(*args, **kwargs)
+        # XXX(todo): use @CoroutineProcess on an individual function, then wrap
+        # with @coroutine, too. Don't start until .next().
+        return cp
+    return wrapper
+
+def coroutine(func):
     """ Decorator for priming co-routines that use (yield) """
-    def start(*args, **kwargs):
+    def wrapper(*args, **kwargs):
         c = func(*args, **kwargs)
         c.next() # prime it for iteration
         return c
-    return start
- 
-def broadcast(source, coroutines):
-    """ Sends data from a source to multiple coroutines """
-    # send items to multiple coroutines
-    for item in source:
-        for c in coroutines:
-            c.send(item)
+    return wrapper
 
