@@ -5,6 +5,14 @@ import Queue
 import threading
 import multiprocessing
 
+def coroutine(func):
+    """ Decorator for priming co-routines that use (yield) """
+    def wrapper(*args, **kwargs):
+        c = func(*args, **kwargs)
+        c.next() # prime it for iteration
+        return c
+    return wrapper
+
 class CoroutineProcess(multiprocessing.Process):
     """ Will run a coroutine in its own process, using the
         multiprocessing library. The coroutine thread runs as
@@ -44,6 +52,15 @@ class CoroutineProcess(multiprocessing.Process):
         self.processor.close()
         self.shutdown.set()
 
+def coroutine_process(func):
+    def wrapper(*args, **kwargs):
+        cp = CoroutineProcess(func)
+        cp = cp(*args, **kwargs)
+        # XXX(todo): use @CoroutineProcess on an individual function, then wrap
+        # with @coroutine, too. Don't start until .next().
+        return cp
+    return wrapper
+
 class CoroutineThread(threading.Thread):
     """ Wrapper for coroutines; runs in their own threads. """
     def __init__(self, target_func):
@@ -58,6 +75,13 @@ class CoroutineThread(threading.Thread):
             raise StopIteration
         self.in_queue.put(item)
     
+    def __call__(self, *args, **kwargs):
+        # Prime the wrapped coroutine.
+        self.processor = self.processor(*args, **kwargs)
+        self.processor.next()
+        self.start()
+        return self
+    
     def run(self): # this is running in its own thread after it is created
         try:
             while True:
@@ -67,23 +91,17 @@ class CoroutineThread(threading.Thread):
         except StopIteration:
             pass
         self.shutdown.set()
+    
     def close(self):
         self.shutdown.set()
 
-def coroutine_process(func):
+def coroutine_thread(func):
     def wrapper(*args, **kwargs):
-        cp = CoroutineProcess(func)
+        cp = CoroutineThread(func)
         cp = cp(*args, **kwargs)
         # XXX(todo): use @CoroutineProcess on an individual function, then wrap
         # with @coroutine, too. Don't start until .next().
         return cp
     return wrapper
 
-def coroutine(func):
-    """ Decorator for priming co-routines that use (yield) """
-    def wrapper(*args, **kwargs):
-        c = func(*args, **kwargs)
-        c.next() # prime it for iteration
-        return c
-    return wrapper
 

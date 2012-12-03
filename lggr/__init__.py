@@ -8,7 +8,7 @@ import sys
 import time
 import inspect
 import traceback
-from lggr.coroutine import coroutine, coroutine_process
+from lggr.coroutine import coroutine, coroutine_process, coroutine_thread
 
 __version__ = '0.1.5'
 
