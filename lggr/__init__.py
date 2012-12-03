@@ -8,7 +8,7 @@ import sys
 import time
 import inspect
 import traceback
-from lggr.coroutine import Coroutine, CoroutineProcess, CoroutineThread
+from lggr.coroutine import coroutine, coroutine_process
 
 __version__ = '0.1.5'
 
@@ -70,7 +70,7 @@ class Lggr():
         """ Turn on logging. Enabled by default. """
         self.enabled = True
 
-    def shutdown(self):
+    def close(self):
         """ Stop and remove all logging functions
             and disable this logger. """
         for level in ALL:
@@ -293,7 +293,7 @@ class Lggr():
             break
         return rv
 
-@CoroutineProcess
+@coroutine_process
 def Printer(open_file=sys.stdout, closing=False):
     """ Prints items with a timestamp. """
     try:
@@ -317,7 +317,7 @@ def FilePrinter(filename, mode='a', closing=True):
     return Printer(f, closing)
 
 import socket
-@CoroutineProcess
+@coroutine_process
 def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
     """ Writes messages to a socket/host. """
     message = '({0}): {1}'
@@ -331,7 +331,7 @@ def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
         s.close()
 
 import smtplib
-@CoroutineProcess
+@coroutine_process
 def Emailer(recipients, sender=None):
     """ Sends messages as emails to the given list
         of recipients. """
@@ -349,7 +349,7 @@ def Emailer(recipients, sender=None):
     except GeneratorExit:
         smtp.quit()
 
-@CoroutineProcess
+@coroutine_process
 def GMailer(recipients, username, password, subject='Log message from lggr.py'):
     """ Sends messages as emails to the given list
         of recipients, from a GMail account. """

@@ -45,5 +45,5 @@ mylggr.clear(lggr.INFO)
 mylggr.info("Testing....")
 mylggr.error("Testing {} {} {}", "another", "stupid", "thing")
 
-mylggr.shutdown()
+mylggr.close()
 mylggr.log(lggr.ALL, "Help?")
