@@ -42,7 +42,7 @@ Do some logging.
 mylggr.info("Hello, world!")
 mylggr.warning("Something seems to have gone {desc}", {"desc":"amuck!"})
 mylggr.critical("Someone {} us {} the {}!", "set", "up", "bomb")
-mylggr.shutdown() # stop logging
+mylggr.close() # stop logging
 ```
 
 # What kind of information can I log?
