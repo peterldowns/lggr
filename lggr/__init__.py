@@ -25,29 +25,33 @@ else:
     _srcfile = __file__
 _srcfile = os.path.normcase(_srcfile)
 
-# 
+#
 try:
     import threading
 except:
     threading = None
-try: 
+try:
     import multiprocessing as mp
 except:
     mp = None
 
 class Lggr():
-    """ Simplified logging. Dispatches messages to any type of
-        logging function you want to write, all it has to support
-        is send() and close(). """
-    def __init__(self, defaultfmt=None, keep_history=False, suppress_errors=True):
+    """ Simplified logging. Dispatches messages to any type of logging function
+    you want to write, all it has to support is send() and close(). """
+    def __init__(self,
+                 defaultfmt=None,
+                 keep_history=False,
+                 suppress_errors=True):
         self.defaultfmt = defaultfmt or '{asctime} ({levelname}) {logmessage}'
         self.config = {
-                CRITICAL: set(), # these are different levels of logger functions
+                # Different levels of logger functions.
+                CRITICAL: set(),
                 ERROR: set(),
                 DEBUG: set(),
                 WARNING: set(),
                 INFO: set(),
-                'defaultfmt': self.defaultfmt # lets lggrname.defaulfmt act as a shortcut
+                # Allow lggrname.defaultfmt act as a shortcut.
+                'defaultfmt': self.defaultfmt
             }
         self.history = []
         self.enabled = True
@@ -55,7 +59,7 @@ class Lggr():
         self.suppress_errors = suppress_errors
 
         # allow instance.LEVEL instead of lggr.LEVEL
-        self.ALL = ALL 
+        self.ALL = ALL
         self.DEBUG = DEBUG
         self.INFO = INFO
         self.WARNING = WARNING
@@ -99,26 +103,33 @@ class Lggr():
             item.close()
         self.config[level].clear()
 
-    def _make_record(self, level, fmt, args, extra, exc_info, inc_stackinfo, inc_multiproc):
+    def _make_record(self,
+                     level,
+                     fmt,
+                     args,
+                     extra,
+                     exc_info,
+                     inc_stackinfo,
+                     inc_multiproc):
         """ Create a 'record' (a dictionary) with information to be logged. """
 
+        fn = fn = '(unknown file)'
+        lno = 0
+        func = '(unknown function)'
+        code = '(code not available)'
+        cc = []
         sinfo = None
+        module = '(unknown module)'
         if _srcfile and inc_stackinfo:
             #IronPython doesn't track Python frames, so _find_caller throws an
             #exception on some versionf of IronPython. We trap it here so that
             #IronPython can use logging.
             try:
                 fn, lno, func, code, cc, sinfo = self._find_caller()
+                fname = os.path.basename(fn)
+                module = os.path.splitext(fname)[0]
             except ValueError:
-                fn, lno, func, code, cc, sinfo = '(unknown file)', 0, '(unknown function)', '(code not available)', [], None
-        else:
-            fn, lno, func, code, cc, sinfo = '(unknown file)', 0, '(unknown function)', '(code not available)', [], None
-        try:
-            fname = os.path.basename(fn)
-            module = os.path.splitext(fname)[0]
-        except (TypeError, ValueError, AttributeError):
-            fname = fn
-            module = '(unknown module)'
+                pass
 
         if not exc_info or not isinstance(exc_info, tuple):
             # Allow passed in exc_info, but supply it if it isn't
@@ -146,17 +157,18 @@ class Lggr():
             'threadid' : None,
             'threadname' : None,
             'time' : time.time(),
-            # The custom `extra` information can only be used to format the default
-            #   format. The `logmessage` can only be passed a dictionary or a list
-            #   (as `args`).
+            # The custom `extra` information can only be used to format the
+            # default format. The `logmessage` can only be passed a dictionary
+            # or a list (as `args`).
             'defaultfmt' : self.config['defaultfmt']
         }
-        # If the user passed a single dict, use that with format.
-        # If we're passed a tuple or list, dereference its contents
-        # as args to format, too. Otherwise, leave the log message
-        # as None.
+        # If the user passed a single dict, use that with format.  If we're
+        # passed a tuple or list, dereference its contents as args to format,
+        # too. Otherwise, leave the log message as None.
         if args:
-            if isinstance(args, (tuple, list)) and len(args) == 1 and isinstance(args[0], dict):
+            if (isinstance(args, (tuple, list)) and
+                len(args) == 1 and
+                isinstance(args[0], dict)):
                 log_record['logmessage'] = fmt.format(**args[0])
             else:
                 log_record['logmessage'] = fmt.format(*args)
@@ -165,7 +177,7 @@ class Lggr():
 
         if extra:
             log_record.update(extra) # add custom variables to record
-        
+
         if threading: # check to use threading
             curthread = threading.current_thread()
             log_record.update({
@@ -186,14 +198,22 @@ class Lggr():
 
         return log_record
 
-    def _log(self, level, fmt, args=None, extra=None, exc_info=None, inc_stackinfo=False, inc_multiproc=False):
+    def _log(self,
+             level,
+             fmt,
+             args=None,
+             extra=None,
+             exc_info=None,
+             inc_stackinfo=False,
+             inc_multiproc=False):
         """ Send a log message to all of the logging functions
             for a given level as well as adding the
             message to this logger instance's history. """
         if not self.enabled:
             return # Fail silently so that logging can easily be removed
 
-        log_record = self._make_record(level, fmt, args, extra, exc_info, inc_stackinfo, inc_multiproc)
+        log_record = self._make_record(
+          level, fmt, args, extra, exc_info, inc_stackinfo, inc_multiproc)
 
         logstr = log_record['defaultfmt'].format(**log_record) #whoah.
 
@@ -205,7 +225,9 @@ class Lggr():
         for lf in log_funcs:
             try:
                 lf.send(logstr)
-            except StopIteration: # already closed, add it to the list to be deleted
+            except StopIteration:
+                # in the case that the log function is already closed, add it
+                # to the list of functions to be deleted.
                 to_remove.append(lf)
         for lf in to_remove:
             self.remove(level, lf)
@@ -225,7 +247,7 @@ class Lggr():
 
 #debug, info, warning, error, critical
     def info(self, msg, *args, **kwargs):
-        """' Log a message with INFO level """   
+        """' Log a message with INFO level """
         self.log(INFO, msg, args, **kwargs)
 
     def warning(self, msg, *args, **kwargs):
@@ -233,24 +255,21 @@ class Lggr():
         self.log(WARNING, msg, args, **kwargs)
 
     def debug(self, msg, *args, **kwargs):
-        """ Log a message with DEBUG level. Automatically
-            includes stack info unless it is specifically not
-            included. """
+        """ Log a message with DEBUG level. Automatically includes stack info
+        unless it is specifically not included. """
         kwargs.setdefault('inc_stackinfo', True)
         self.log(DEBUG, msg, args, **kwargs)
-    
+
     def error(self, msg, *args, **kwargs):
-        """ Log a message with ERROR level. Automatically
-            includes stack and process info unless they
-            are specifically not included. """
+        """ Log a message with ERROR level. Automatically includes stack and
+        process info unless they are specifically not included. """
         kwargs.setdefault('inc_stackinfo', True)
         kwargs.setdefault('inc_multiproc', True)
         self.log(ERROR, msg, args, **kwargs)
 
     def critical(self, msg, *args, **kwargs):
-        """ Log a message with CRITICAL level. Automatically
-            includes stack and process info unless they are
-            specifically not included. """
+        """ Log a message with CRITICAL level. Automatically includes stack and
+        process info unless they are specifically not included. """
         kwargs.setdefault('inc_stackinfo', True)
         kwargs.setdefault('inc_multiproc', True)
         self.log(CRITICAL, msg, args, **kwargs)
@@ -266,28 +285,34 @@ class Lggr():
 
     def _find_caller(self):
         """
-        Find the stack frame of the caller so that we can note the source
-        file name, line number, and function name
+        Find the stack frame of the caller so that we can note the source file
+        name, line number, and function name.
         """
-        rv = ('(unknown file)', 0, '(unknown function)', '(code not available)', [], None)
+        rv = ('(unknown file)',
+              0,
+              '(unknown function)',
+              '(code not available)',
+              [],
+              None)
         f = inspect.currentframe()
         while hasattr(f, 'f_code'):
             co = f.f_code
             filename = os.path.normcase(co.co_filename)
-            # When lggr is imported as a module, the `_src_file`
-            # filename ends in '.pyc', while the filename grabbed
-            # from inspect will end in '.py'. We use splitext here
-            # to compare absolute paths without the extension, which
-            # restores the intended behavior of dropping down the callstack
-            # until we reach the first file not part of this library.
+            # When lggr is imported as a module, the `_src_file` filename ends
+            # in '.pyc', while the filename grabbed from inspect will end in
+            # '.py'. We use splitext here to compare absolute paths without the
+            # extension, which restores the intended behavior of dropping down
+            # the callstack until we reach the first file not part of this
+            # library.
             if os.path.splitext(filename)[0] == os.path.splitext(_srcfile)[0]:
                 f = f.f_back # get out of this logging file
                 continue
             sinfo = traceback.extract_stack(f)
             fname, lno, fnc, cc, i = inspect.getframeinfo(f, context=10)
-            
+
             # Mark the calling line with a >
-            cc = map(lambda c: ('> ' if c[0] == i else '| ') + c[1], enumerate(cc))
+            cc = map(lambda info: ('> ' if info[0] == i else '| ') + info[1],
+                     enumerate(cc))
             code = '>' + cc[i]
             rv = (fname, lno, fnc, code, cc, sinfo)
             break
@@ -316,10 +341,14 @@ def FilePrinter(filename, mode='a', closing=True):
     f = open(path, mode)
     return Printer(f, closing)
 
-import socket
 @coroutine_process
-def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
+def SocketWriter(host, port, af=None, st=None):
     """ Writes messages to a socket/host. """
+    import socket
+    if af is None:
+        af = socket.AF_INET
+    if st is None:
+        st = socket.SOCK_STREAM
     message = '({0}): {1}'
     s = socket.socket(af, st)
     s.connect(host, port)
@@ -330,11 +359,11 @@ def SocketWriter(host, port, af=socket.AF_INET, st=socket.SOCK_STREAM):
     except GeneratorExit:
         s.close()
 
-import smtplib
 @coroutine_process
 def Emailer(recipients, sender=None):
     """ Sends messages as emails to the given list
         of recipients. """
+    import smtplib
     hostname = socket.gethostname()
     if not sender:
         sender = 'lggr@{0}'.format(hostname)
@@ -353,6 +382,7 @@ def Emailer(recipients, sender=None):
 def GMailer(recipients, username, password, subject='Log message from lggr.py'):
     """ Sends messages as emails to the given list
         of recipients, from a GMail account. """
+    import smtplib
     srvr = smtplib.SMTP('smtp.gmail.com', 587)
     srvr.ehlo()
     srvr.starttls()
@@ -361,7 +391,7 @@ def GMailer(recipients, username, password, subject='Log message from lggr.py'):
 
     if not (isinstance(recipients, list) or isinstance(recipients, tuple)):
         recipients = [recipients]
-    
+
     gmail_sender = '{0}@gmail.com'.format(username)
 
     msg = 'To: {0}\nFrom: '+gmail_sender+'\nSubject: '+subject+'\n'
@@ -372,10 +402,7 @@ def GMailer(recipients, username, password, subject='Log message from lggr.py'):
             logstr = (yield)
             for rcp in recipients:
                 message = msg.format(rcp, logstr)
-                try:
-                    srvr.sendmail(gmail_sender, rcp, message)
-                except smtplib.SMTPException:
-                    pass
+                srvr.sendmail(gmail_sender, rcp, message)
     except GeneratorExit:
         srvr.quit()
 

@@ -14,24 +14,25 @@ def coroutine(func):
     return wrapper
 
 class CoroutineProcess(multiprocessing.Process):
-    """ Will run a coroutine in its own process, using the
-        multiprocessing library. The coroutine thread runs as
-        a daemon, and is closed automatically when it is no longer
-        needed. Because it exposes send and close methods, a CoroutineProcess
-        wrapped coroutine can be dropped in for a regular coroutine."""
-    
+    """ Will run a coroutine in its own process, using the multiprocessing
+    library. The coroutine thread runs as a daemon, and is closed automatically
+    when it is no longer needed. Because it exposes send and close methods, a
+    CoroutineProcess wrapped coroutine can be dropped in for a regular
+    coroutine."""
+
     def __init__(self, target_func):
         multiprocessing.Process.__init__(self)
-        self.in_queue = multiprocessing.Queue() # create a Queue for sending items to the process
+        self.in_queue = multiprocessing.Queue()
         self.processor = target_func
         self.daemon = True
-        self.shutdown = multiprocessing.Event() # allows the thread to close correctly
+        # Allows the thread to close correctly
+        self.shutdown = multiprocessing.Event()
 
     def send(self, item):
         if self.shutdown.is_set():
             raise StopIteration
         self.in_queue.put(item)
-    
+
     def __call__(self, *args, **kwargs):
         # Prime the wrapped coroutine.
         self.processor = self.processor(*args, **kwargs)
@@ -47,7 +48,7 @@ class CoroutineProcess(multiprocessing.Process):
         except StopIteration:
             pass
         self.close()
-    
+
     def close(self):
         self.processor.close()
         self.shutdown.set()
@@ -74,14 +75,14 @@ class CoroutineThread(threading.Thread):
         if self.shutdown.isSet():
             raise StopIteration
         self.in_queue.put(item)
-    
+
     def __call__(self, *args, **kwargs):
         # Prime the wrapped coroutine.
         self.processor = self.processor(*args, **kwargs)
         self.processor.next()
         self.start()
         return self
-    
+
     def run(self): # this is running in its own thread after it is created
         try:
             while True:
@@ -91,7 +92,7 @@ class CoroutineThread(threading.Thread):
         except StopIteration:
             pass
         self.shutdown.set()
-    
+
     def close(self):
         self.shutdown.set()
 
