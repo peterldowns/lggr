@@ -113,7 +113,7 @@ class Lggr():
                      inc_multiproc):
         """ Create a 'record' (a dictionary) with information to be logged. """
 
-        fn = fn = '(unknown file)'
+        fn = fname = '(unknown file)'
         lno = 0
         func = '(unknown function)'
         code = '(code not available)'
