@@ -10,7 +10,7 @@ import inspect
 import traceback
 from lggr.coroutine import coroutine, coroutine_process, coroutine_thread
 
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 DEBUG = 'DEBUG'
 INFO = 'INFO'
